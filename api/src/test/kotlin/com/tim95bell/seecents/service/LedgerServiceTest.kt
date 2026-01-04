@@ -1,14 +1,16 @@
 package com.tim95bell.seecents.service
 
 import com.tim95bell.seecents.application.service.LedgerService
+import com.tim95bell.seecents.common.fp.*
 import com.tim95bell.seecents.domain.model.AUD
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
-import com.tim95bell.seecents.domain.model.group
-import com.tim95bell.seecents.domain.model.money
-import com.tim95bell.seecents.domain.model.user
+import com.tim95bell.seecents.domain.model.T0
+import com.tim95bell.seecents.domain.model.testGroup
+import com.tim95bell.seecents.domain.model.testMoney
+import com.tim95bell.seecents.domain.model.testUser
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import io.mockk.every
@@ -17,7 +19,6 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.Instant
 import kotlin.test.assertEquals
 
 class LedgerServiceTest {
@@ -35,9 +36,9 @@ class LedgerServiceTest {
     @Test
     fun `record expense for a group`() {
         // GIVEN
-        val groupId = group()
-        val u1 = user(1)
-        val u2 = user(2)
+        val groupId = testGroup()
+        val u1 = testUser(1)
+        val u2 = testUser(2)
         val group = Group(
             id = groupId,
             core = GroupCore(
@@ -45,7 +46,7 @@ class LedgerServiceTest {
                 users = setOf(u1, u2)
             )
         )
-        val amount = money()
+        val amount = testMoney()
 
         every { groupRepo.getGroupById(groupId) } returns group
 
@@ -59,12 +60,12 @@ class LedgerServiceTest {
             )
         )
 
-        val now = Instant.now()
+        val now = T0
 
         every { ledgerRepo.save(capture(savedEntrySlot)) } returns Unit
 
         // WHEN
-        service.createEntry(
+        val result = service.createEntry(
             type = LedgerEntryType.Expense,
             groupId = groupId,
             effectiveAt = now,
@@ -72,8 +73,19 @@ class LedgerServiceTest {
         )
 
         // THEN
+        result.assertOk().tap {
+            assertEquals(LedgerEntryType.Expense, it.type)
+            assertEquals(groupId, it.groupId)
+            assertEquals(now, it.effectiveAt)
+            assertEquals(lines.size, it.lines.size)
+            for ((createLine, resultLine) in lines.zip(it.lines)) {
+                assertEquals(createLine.fromId, resultLine.fromId)
+                assertEquals(createLine.toId, resultLine.toId)
+                assertEquals(createLine.amount, resultLine.amount)
+            }
+        }
         verify(exactly = 1) {
-            ledgerRepo.save(any())
+            ledgerRepo.save(savedEntrySlot.captured)
         }
         verify(exactly = 1) {
             groupRepo.getGroupById(groupId)

@@ -1,40 +1,36 @@
 package com.tim95bell.seecents.domain.model
 
-import org.junit.jupiter.api.Assertions.*
+import com.tim95bell.seecents.common.fp.*
 import org.junit.jupiter.api.Test
 
 class LedgerEntryLineTest {
     @Test
     fun `can create valid line`() {
-        line()
+        testLine().assertOk()
     }
 
     @Test
     fun `line fromUserId can equal toUserId`() {
-        line(from = 1, to = 1)
+        testLine(from = 1, to = 1).assertOk()
     }
 
     @Test
     fun `line fromUserId can NOT equal toUserId`() {
-        line(from = 1, to = 2)
+        testLine(from = 1, to = 2).assertOk()
     }
 
     @Test
     fun `line amount can be positive non zero`() {
-        line(amount = 1L)
+        testLine(amount = 1L).assertOk()
     }
 
     @Test
     fun `line amount can NOT be zero`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            line(amount = 0L)
-        }
+        testLine(amount = 0L).assertErrorEq(LedgerEntryLineCore.CreateError.NonPositiveAmount)
     }
 
     @Test
     fun `line amount can NOT be negative non zero`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            line(amount = -10L)
-        }
+        testLine(amount = -10L).assertErrorEq(LedgerEntryLineCore.CreateError.NonPositiveAmount)
     }
 }
