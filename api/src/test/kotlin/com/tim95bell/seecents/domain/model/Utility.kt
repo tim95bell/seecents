@@ -14,17 +14,26 @@ val T1: Instant = T0.plus(Duration.ofDays(1))
 
 fun testMoney(currency: Currency = AUD, amount: Long = DEFAULT_MONEY_AMOUNT) = MoneyAmount(currency, amount)
 
-fun testUser(id: Int = 1) = UserId("u$id")
+fun testUserId(id: Int = 1) = UserId("u$id")
 
-fun testGroup(id: Int = 1) = GroupId("g$id")
+fun testGroupId(id: Int = 1) = GroupId("g$id")
+
+fun testGroup(
+    id: Int = 1,
+    currency: Currency = AUD,
+    users: Set<UserId> = setOf(testUserId(1), testUserId(2))
+) = Group(testGroupId(id), GroupCore(
+    currency = currency,
+    users = users,
+))
 
 fun testLine(
     from: Int = 1,
     to: Int = 2,
     amount: Long = DEFAULT_MONEY_AMOUNT
 ) = LedgerEntryLineCore.create(
-    testUser(from),
-    testUser(to),
+    testUserId(from),
+    testUserId(to),
     testMoney(amount = amount)
 )
 
@@ -36,7 +45,7 @@ fun testEntry(
 ) = testLine().flatMap {
     LedgerEntryCore.create(
         type,
-        testGroup(),
+        testGroupId(),
         createdAt,
         effectiveAt,
         lines ?: listOf(testLine().assertOk().result)

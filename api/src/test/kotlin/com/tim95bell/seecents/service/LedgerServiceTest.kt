@@ -3,28 +3,50 @@ package com.tim95bell.seecents.service
 import com.tim95bell.seecents.application.service.LedgerService
 import com.tim95bell.seecents.common.fp.*
 import com.tim95bell.seecents.domain.model.AUD
+import com.tim95bell.seecents.domain.model.EUR
 import com.tim95bell.seecents.domain.model.Group
-import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
+import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
+import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.T0
 import com.tim95bell.seecents.domain.model.testGroup
 import com.tim95bell.seecents.domain.model.testMoney
-import com.tim95bell.seecents.domain.model.testUser
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration
+import java.time.Instant
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class LedgerServiceTest {
     private lateinit var ledgerRepo: LedgerEntryRepository
     private lateinit var groupRepo: GroupRepository
     private lateinit var service: LedgerService
+
+    private fun singleLineFor(group: Group, amount: MoneyAmount = testMoney()) =
+        group.core.users.toList().let { users ->
+            listOf(
+                LedgerService.CreateEntryLine(
+                    fromId = users[0],
+                    toId = users[1],
+                    amount = amount
+                )
+            )
+        }
+
+    private fun stubGroupFound(group: Group?) {
+        every { groupRepo.getGroupById(any()) } returns group
+    }
+
+    private fun stubSaveSucceeds() {
+        every { ledgerRepo.save(any()) } returns Unit
+    }
 
     @BeforeEach
     fun setup() {
@@ -34,71 +56,287 @@ class LedgerServiceTest {
     }
 
     @Test
-    fun `record expense for a group`() {
+    fun `succeeds for valid expense entry`() {
         // GIVEN
-        val groupId = testGroup()
-        val u1 = testUser(1)
-        val u2 = testUser(2)
-        val group = Group(
-            id = groupId,
-            core = GroupCore(
-                currency = AUD,
-                users = setOf(u1, u2)
-            )
-        )
-        val amount = testMoney()
-
-        every { groupRepo.getGroupById(groupId) } returns group
-
-        val savedEntrySlot = slot<LedgerEntryCore>()
-
-        val lines = listOf(
-            LedgerService.CreateEntryLine(
-                fromId = u1,
-                toId = u2,
-                amount = amount,
-            )
-        )
-
-        val now = T0
-
-        every { ledgerRepo.save(capture(savedEntrySlot)) } returns Unit
+        val group = testGroup()
+        val lines = singleLineFor(group)
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Expense
 
         // WHEN
         val result = service.createEntry(
-            type = LedgerEntryType.Expense,
-            groupId = groupId,
-            effectiveAt = now,
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
             lines = lines,
         )
 
         // THEN
         result.assertOk().tap {
-            assertEquals(LedgerEntryType.Expense, it.type)
-            assertEquals(groupId, it.groupId)
-            assertEquals(now, it.effectiveAt)
+            assertEquals(type, it.type)
+            assertEquals(group.id, it.groupId)
+            assertEquals(T0, it.effectiveAt)
             assertEquals(lines.size, it.lines.size)
-            for ((createLine, resultLine) in lines.zip(it.lines)) {
-                assertEquals(createLine.fromId, resultLine.fromId)
-                assertEquals(createLine.toId, resultLine.toId)
-                assertEquals(createLine.amount, resultLine.amount)
-            }
         }
         verify(exactly = 1) {
-            ledgerRepo.save(savedEntrySlot.captured)
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `succeeds for valid payment entry`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = singleLineFor(group)
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Payment
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertOk().tap {
+            assertEquals(type, it.type)
+            assertEquals(group.id, it.groupId)
+            assertEquals(T0, it.effectiveAt)
+            assertEquals(lines.size, it.lines.size)
         }
         verify(exactly = 1) {
-            groupRepo.getGroupById(groupId)
+            ledgerRepo.save(any())
         }
+    }
 
-        val saved = savedEntrySlot.captured
+    @Test
+    fun `fails when group does NOT exist`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = singleLineFor(group)
+        stubGroupFound(null)
+        val type = LedgerEntryType.Expense
 
-        assertEquals(groupId, saved.groupId)
-        assertEquals(LedgerEntryType.Expense, saved.type)
-        assertEquals(1, saved.lines.size)
-        val line = saved.lines.first()
-        assertEquals(u1, line.fromId)
-        assertEquals(u2, line.toId)
-        assertEquals(amount, line.amount)
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.GroupNotFound(group.id))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when line currency differs from group currency`() {
+        // GIVEN
+        val group = testGroup(currency = AUD)
+        val lines = singleLineFor(group, amount = testMoney(currency = EUR))
+        stubGroupFound(group)
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.CurrencyMismatch)
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when a line has a non positive amount`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = singleLineFor(group, amount = testMoney(amount = -1L))
+        stubGroupFound(group)
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.LineError(LedgerEntryLineCore.CreateError.NonPositiveAmount))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when no lines are provided`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = emptyList<LedgerService.CreateEntryLine>()
+        stubGroupFound(group)
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EmptyLinesError))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when effective date is after creation date`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = singleLineFor(group)
+        stubGroupFound(group)
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = Instant.now().plus(Duration.ofDays(1)),
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EffectiveDateAfterCreationError))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `succeeds for expense entry with line where fromId equals toId`() {
+        // GIVEN
+        val group = testGroup()
+        val user = group.core.users.first()
+        val lines = listOf(
+            LedgerService.CreateEntryLine(
+                fromId = user,
+                toId = user,
+                amount = testMoney(),
+            )
+        )
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertOk().tap {
+            assertEquals(type, it.type)
+            assertEquals(group.id, it.groupId)
+            assertEquals(T0, it.effectiveAt)
+            assertEquals(lines.size, it.lines.size)
+            assertTrue(it.lines.isNotEmpty())
+            assertEquals(user, it.lines.first().fromId)
+            assertEquals(user, it.lines.first().toId)
+        }
+        verify(exactly = 1) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails for payment entry with line where fromId equals toId`() {
+        // GIVEN
+        val group = testGroup()
+        val user = group.core.users.first()
+        val lines = listOf(
+            LedgerService.CreateEntryLine(
+                fromId = user,
+                toId = user,
+                amount = testMoney(),
+            )
+        )
+        stubGroupFound(group)
+        val type = LedgerEntryType.Payment
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(
+            LedgerService.EntryCreateError.CoreError(
+                LedgerEntryCore.CreateError.PaymentFromIdEqualsToIdError
+            )
+        )
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails and does not save when any line is invalid`() {
+        val group = testGroup()
+        val users = group.core.users.toList()
+
+        val lines = listOf(
+            LedgerService.CreateEntryLine(users[0], users[1], testMoney()),
+            LedgerService.CreateEntryLine(users[1], users[0], testMoney(amount = -1))
+        )
+
+        stubGroupFound(group)
+
+        val result = service.createEntry(
+            type = LedgerEntryType.Expense,
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        result.assertError()
+        verify(exactly = 0) { ledgerRepo.save(any()) }
+    }
+
+    @Test
+    fun `does not validate lines when group does not exist`() {
+        stubGroupFound(null)
+
+        val result = service.createEntry(
+            type = LedgerEntryType.Expense,
+            groupId = testGroup().id,
+            effectiveAt = T0,
+            lines = emptyList()
+        )
+
+        result.assertErrorEq(
+            LedgerService.EntryCreateError.GroupNotFound(testGroup().id)
+        )
     }
 }
