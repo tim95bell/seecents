@@ -22,10 +22,11 @@ fun testGroup(
     id: Int = 1,
     currency: Currency = AUD,
     users: Set<UserId> = setOf(testUserId(1), testUserId(2))
-) = Group(testGroupId(id), GroupCore(
+) = Group(testGroupId(id), GroupCore.create(
     currency = currency,
+    name = "test",
     users = users,
-))
+).assertOk().result)
 
 fun testLine(
     from: Int = 1,
