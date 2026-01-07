@@ -2,6 +2,7 @@ package com.tim95bell.seecents.application.service
 
 import com.tim95bell.seecents.common.fp.*
 import com.tim95bell.seecents.domain.model.GroupId
+import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
 import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
@@ -35,7 +36,7 @@ class LedgerService(
         groupId: GroupId,
         effectiveAt: Instant,
         lines: List<CreateEntryLine>,
-    ): Result<EntryCreateError, LedgerEntryCore> {
+    ): Result<EntryCreateError, LedgerEntry> {
         val now = Instant.now()
 
         val group = groupRepository.getGroupById(groupId)
@@ -65,7 +66,7 @@ class LedgerService(
             ).mapError {
                 EntryCreateError.CoreError(it)
             }
-        }.tap {
+        }.map {
             ledgerEntryRepository.save(it)
         }
     }

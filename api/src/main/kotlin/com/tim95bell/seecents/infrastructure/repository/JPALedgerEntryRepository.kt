@@ -1,12 +1,13 @@
 package com.tim95bell.seecents.infrastructure.repository
 
+import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import org.springframework.stereotype.Component
 
 @Component
 class JPALedgerEntryRepository : LedgerEntryRepository {
-    override fun save(newEntry: LedgerEntryCore) {
+    override fun save(newEntry: LedgerEntryCore): LedgerEntry {
         TODO("Not yet implemented")
     }
 }
