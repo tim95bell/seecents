@@ -34,6 +34,7 @@ class LedgerService(
     fun createEntry(
         type: LedgerEntryType,
         groupId: GroupId,
+        creatorId: UserId,
         effectiveAt: Instant,
         lines: List<CreateEntryLine>,
     ): Result<EntryCreateError, LedgerEntry> {
@@ -58,7 +59,8 @@ class LedgerService(
             }
         }.sequence().flatMap { lines ->
             LedgerEntryCore.create(
-                groupId = groupId,
+                group = group,
+                creatorId = creatorId,
                 type = type,
                 createdAt = now,
                 effectiveAt = effectiveAt,

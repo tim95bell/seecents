@@ -13,7 +13,9 @@ import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.T0
 import com.tim95bell.seecents.domain.model.testGroup
+import com.tim95bell.seecents.domain.model.testLine
 import com.tim95bell.seecents.domain.model.testMoney
+import com.tim95bell.seecents.domain.model.testUserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import io.mockk.every
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
+import kotlin.test.assertEquals
 
 class LedgerServiceTest {
     private lateinit var ledgerRepo: LedgerEntryRepository
@@ -67,6 +70,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -91,6 +95,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -114,6 +119,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -137,6 +143,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -160,6 +167,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -183,6 +191,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -206,6 +215,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = Instant.now().plus(Duration.ofDays(1)),
             lines = lines,
@@ -237,6 +247,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -267,6 +278,7 @@ class LedgerServiceTest {
         // WHEN
         val result = service.createEntry(
             type = type,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -297,6 +309,7 @@ class LedgerServiceTest {
 
         val result = service.createEntry(
             type = LedgerEntryType.Expense,
+            creatorId = testUserId(1),
             groupId = group.id,
             effectiveAt = T0,
             lines = lines,
@@ -313,6 +326,7 @@ class LedgerServiceTest {
         val result = service.createEntry(
             type = LedgerEntryType.Expense,
             groupId = testGroup().id,
+            creatorId = testUserId(),
             effectiveAt = T0,
             lines = emptyList()
         )
@@ -320,5 +334,88 @@ class LedgerServiceTest {
         result.assertErrorEq(
             LedgerService.EntryCreateError.GroupNotFound(testGroup().id)
         )
+    }
+
+    @Test
+    fun `fails when creator is not in group`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = singleLineFor(group)
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            creatorId = testUserId(3),
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        assertEquals(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.CreatorNotInGroupError), result.assertError().error)
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when line fromId is not in group`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = listOf(LedgerService.CreateEntryLine(
+            fromId = testUserId(3),
+            toId = testUserId(2),
+            amount = testMoney(),
+        ))
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            creatorId = testUserId(1),
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
+    }
+
+    @Test
+    fun `fails when line toId is not in group`() {
+        // GIVEN
+        val group = testGroup()
+        val lines = listOf(LedgerService.CreateEntryLine(
+            fromId = testUserId(1),
+            toId = testUserId(3),
+            amount = testMoney(),
+        ))
+        stubGroupFound(group)
+        stubSaveSucceeds()
+        val type = LedgerEntryType.Expense
+
+        // WHEN
+        val result = service.createEntry(
+            type = type,
+            creatorId = testUserId(1),
+            groupId = group.id,
+            effectiveAt = T0,
+            lines = lines,
+        )
+
+        // THEN
+        result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
+        verify(exactly = 0) {
+            ledgerRepo.save(any())
+        }
     }
 }

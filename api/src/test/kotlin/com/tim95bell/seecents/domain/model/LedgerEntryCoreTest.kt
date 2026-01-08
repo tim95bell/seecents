@@ -73,4 +73,21 @@ class LedgerEntryCoreTest {
             testEntry(type = LedgerEntryType.Payment, lines = listOf(line))
         }.assertOk()
     }
+
+    @Test
+    fun `can NOT have creatorId that is not in group`() {
+        testEntry(creatorId = testUserId(3)).assertErrorEq(LedgerEntryCore.CreateError.CreatorNotInGroupError)
+    }
+
+    @Test
+    fun `can NOT have line fromId that is not in group`() {
+        testEntry(lines = listOf(testLine(from = 3).assertOk().value))
+            .assertErrorEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
+    }
+
+    @Test
+    fun `can NOT have line toId that is not in group`() {
+        testEntry(lines = listOf(testLine(to = 3).assertOk().value))
+            .assertErrorEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
+    }
 }

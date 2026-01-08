@@ -42,14 +42,27 @@ fun testEntry(
     type: LedgerEntryType = LedgerEntryType.Expense,
     createdAt: Instant = T0,
     effectiveAt: Instant = T0,
-    lines: List<LedgerEntryLineCore>? = null
-) = testLine().flatMap {
-    LedgerEntryCore.create(
+    group: Group = Group(testGroupId(), GroupCore.create(
+        setOf(testUserId(1), testUserId(2)),
+        "test",
+        AUD,
+    ).assertOk().value),
+    lines: List<LedgerEntryLineCore> = listOf(
+        LedgerEntryLineCore.create(
+            testUserId(1),
+            testUserId(2),
+            testMoney()
+        ).assertOk().value
+    ),
+    creatorId: UserId = testUserId(1),
+): Result<LedgerEntryCore.CreateError, LedgerEntryCore> {
+    return LedgerEntryCore.create(
         type,
-        testGroupId(),
+        group,
+        creatorId,
         createdAt,
         effectiveAt,
-        lines ?: listOf(testLine().assertOk().value)
+        lines,
     )
 }
 
