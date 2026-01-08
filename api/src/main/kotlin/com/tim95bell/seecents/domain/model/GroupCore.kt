@@ -1,6 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.Result
+import com.tim95bell.seecents.common.fp.*
 import java.util.Currency
 
 data class GroupCore private constructor(
@@ -24,20 +24,20 @@ data class GroupCore private constructor(
             val validatedName = try {
                 validateName(name)
             } catch (e: Exception) {
-                return Result.Error(CreateError.EmptyName)
+                return error(CreateError.EmptyName)
             }
 
-            return Result.Ok(GroupCore(validatedName, currency, setOf(creator)))
+            return ok(GroupCore(validatedName, currency, setOf(creator)))
         }
 
         fun create(users: Set<UserId>, name: String, currency: Currency): Result<CreateError, GroupCore> {
             val validatedName = try {
                 validateName(name)
             } catch (e: Exception) {
-                return Result.Error(CreateError.EmptyName)
+                return error(CreateError.EmptyName)
             }
 
-            return Result.Ok(GroupCore(validatedName, currency, users))
+            return ok(GroupCore(validatedName, currency, users))
         }
     }
 }

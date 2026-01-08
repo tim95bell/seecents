@@ -3,7 +3,7 @@ package com.tim95bell.seecents.domain.model
 import com.tim95bell.seecents.common.fp.*
 import org.junit.jupiter.api.Test
 
-class LedgerEntryLineTest {
+class LedgerEntryLineCoreTest {
     @Test
     fun `can create valid line`() {
         testLine().assertOk()

@@ -1,7 +1,8 @@
-package com.tim95bell.seecents.service
+package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.application.service.LedgerService
-import com.tim95bell.seecents.common.fp.*
+import com.tim95bell.seecents.common.fp.assertError
+import com.tim95bell.seecents.common.fp.assertErrorEq
+import com.tim95bell.seecents.common.fp.assertOk
 import com.tim95bell.seecents.domain.model.AUD
 import com.tim95bell.seecents.domain.model.EUR
 import com.tim95bell.seecents.domain.model.Group

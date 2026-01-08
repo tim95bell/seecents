@@ -40,12 +40,12 @@ class LedgerService(
         val now = Instant.now()
 
         val group = groupRepository.getGroupById(groupId)
-            ?: return Result.Error(EntryCreateError.GroupNotFound(groupId))
+            ?: return error(EntryCreateError.GroupNotFound(groupId))
 
         if (lines.any {
             it.amount.currency != group.core.currency
         }) {
-            return Result.Error(EntryCreateError.CurrencyMismatch)
+            return error(EntryCreateError.CurrencyMismatch)
         }
 
         return lines.map {

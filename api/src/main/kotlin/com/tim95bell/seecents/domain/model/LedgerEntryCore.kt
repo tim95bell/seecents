@@ -1,6 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.Result
+import com.tim95bell.seecents.common.fp.*
 import java.time.Instant
 
 data class LedgerEntryCore private constructor(
@@ -25,24 +25,24 @@ data class LedgerEntryCore private constructor(
             lines: List<LedgerEntryLineCore>,
         ): Result<CreateError, LedgerEntryCore> {
             if (lines.isEmpty()) {
-                return Result.Error(CreateError.EmptyLinesError)
+                return error(CreateError.EmptyLinesError)
             }
 
             if (effectiveAt > createdAt) {
-                return Result.Error(CreateError.EffectiveDateAfterCreationError)
+                return error(CreateError.EffectiveDateAfterCreationError)
             }
 
             when (type) {
                 LedgerEntryType.Payment -> {
                     if (lines.any { it.fromId == it.toId }) {
-                        return Result.Error(CreateError.PaymentFromIdEqualsToIdError)
+                        return error(CreateError.PaymentFromIdEqualsToIdError)
                     }
                 }
                 LedgerEntryType.Expense -> {
                 }
             }
 
-            return Result.Ok(LedgerEntryCore(
+            return ok(LedgerEntryCore(
                 type = type,
                 groupId = groupId,
                 createdAt = createdAt,

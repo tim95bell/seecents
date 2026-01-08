@@ -1,6 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.Result
+import com.tim95bell.seecents.common.fp.*
 
 data class LedgerEntryLineCore private constructor(
     val fromId: UserId,
@@ -18,10 +18,10 @@ data class LedgerEntryLineCore private constructor(
             amount: MoneyAmount,
         ) : Result<CreateError, LedgerEntryLineCore> {
             if (amount.amount <= 0) {
-                return Result.Error(CreateError.NonPositiveAmount)
+                return error(CreateError.NonPositiveAmount)
             }
 
-            return Result.Ok(LedgerEntryLineCore(fromId, toId, amount))
+            return ok(LedgerEntryLineCore(fromId, toId, amount))
         }
     }
 }

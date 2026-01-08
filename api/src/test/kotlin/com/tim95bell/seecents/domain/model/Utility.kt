@@ -26,7 +26,7 @@ fun testGroup(
     currency = currency,
     name = "test",
     users = users,
-).assertOk().result)
+).assertOk().value)
 
 fun testLine(
     from: Int = 1,
@@ -49,7 +49,7 @@ fun testEntry(
         testGroupId(),
         createdAt,
         effectiveAt,
-        lines ?: listOf(testLine().assertOk().result)
+        lines ?: listOf(testLine().assertOk().value)
     )
 }
 

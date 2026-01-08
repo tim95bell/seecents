@@ -1,6 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.Result
+import com.tim95bell.seecents.common.fp.*
 import java.util.Currency
 
 data class MoneyAmount(
@@ -13,9 +13,9 @@ data class MoneyAmount(
 
     fun combine(other: MoneyAmount, block: (Long, Long) -> Long): Result<CombineError, MoneyAmount> {
         if (this.currency != other.currency) {
-            return Result.Error(CombineError.CombineDifferingCurrenciesError)
+            return error(CombineError.CombineDifferingCurrenciesError)
         }
 
-        return Result.Ok(MoneyAmount(currency, block(amount, other.amount)))
+        return ok(MoneyAmount(currency, block(amount, other.amount)))
     }
 }
