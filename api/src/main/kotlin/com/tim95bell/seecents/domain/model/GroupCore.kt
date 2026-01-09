@@ -40,4 +40,23 @@ data class GroupCore private constructor(
             return ok(GroupCore(validatedName, currency, users))
         }
     }
+
+    sealed interface AddUserError {
+        data object InvitingUserNotInGroup : AddUserError
+        data object InvitedUserAlreadyInGroup : AddUserError
+    }
+
+    fun addUser(invitingUser: UserId, invitedUser: UserId): Result<AddUserError, GroupCore> {
+        if (!users.contains(invitingUser)) {
+            return error(AddUserError.InvitingUserNotInGroup)
+        }
+
+        if (users.contains(invitedUser)) {
+            return error(AddUserError.InvitedUserAlreadyInGroup)
+        }
+
+        return ok(copy(
+            users = this.users + invitedUser,
+        ))
+    }
 }

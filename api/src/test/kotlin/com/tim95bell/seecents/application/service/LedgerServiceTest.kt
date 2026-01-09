@@ -13,7 +13,6 @@ import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.T0
 import com.tim95bell.seecents.domain.model.testGroup
-import com.tim95bell.seecents.domain.model.testLine
 import com.tim95bell.seecents.domain.model.testMoney
 import com.tim95bell.seecents.domain.model.testUserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
@@ -44,7 +43,7 @@ class LedgerServiceTest {
         }
 
     private fun stubGroupFound(group: Group?) {
-        every { groupRepo.getGroupById(any()) } returns group
+        every { groupRepo.getById(any()) } returns group
     }
 
     private fun stubSaveSucceeds() {

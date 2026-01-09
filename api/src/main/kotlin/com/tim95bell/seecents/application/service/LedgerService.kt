@@ -40,7 +40,7 @@ class LedgerService(
     ): Result<EntryCreateError, LedgerEntry> {
         val now = Instant.now()
 
-        val group = groupRepository.getGroupById(groupId)
+        val group = groupRepository.getById(groupId)
             ?: return error(EntryCreateError.GroupNotFound(groupId))
 
         if (lines.any {

@@ -8,11 +8,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class JPAGroupRepository : GroupRepository {
-    override fun saveGroup(group: GroupCore): Group {
+    override fun save(group: GroupCore): Group {
         TODO("Not yet implemented")
     }
 
-    override fun getGroupById(id: GroupId): Group? {
+    override fun update(group: Group): Group {
+        TODO("Not yet implemented")
+    }
+
+    override fun getById(id: GroupId): Group? {
         TODO("Not yet implemented")
     }
 }

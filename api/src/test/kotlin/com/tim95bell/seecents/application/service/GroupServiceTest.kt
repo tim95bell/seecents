@@ -23,7 +23,7 @@ class GroupServiceTest {
     }
 
     private fun stubSaveGroup() {
-        every { groupRepo.saveGroup(any()) } returns mockk<Group>()
+        every { groupRepo.save(any()) } returns mockk<Group>()
     }
 
     @Test
