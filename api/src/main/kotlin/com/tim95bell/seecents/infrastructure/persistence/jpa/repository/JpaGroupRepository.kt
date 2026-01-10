@@ -1,4 +1,4 @@
-package com.tim95bell.seecents.infrastructure.repository
+package com.tim95bell.seecents.infrastructure.persistence.jpa.repository
 
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
@@ -7,7 +7,7 @@ import com.tim95bell.seecents.domain.repository.GroupRepository
 import org.springframework.stereotype.Component
 
 @Component
-class JPAGroupRepository : GroupRepository {
+class JpaGroupRepository : GroupRepository {
     override fun save(group: GroupCore): Group {
         TODO("Not yet implemented")
     }
