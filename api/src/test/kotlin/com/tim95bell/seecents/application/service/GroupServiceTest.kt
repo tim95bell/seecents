@@ -35,7 +35,7 @@ class GroupServiceTest {
     }
 
     private fun stubGetById(group: Group) {
-        every { groupRepo.getById(group.id) } returns group
+        every { groupRepo.findById(group.id) } returns group
     }
 
     @Nested
@@ -91,7 +91,7 @@ class GroupServiceTest {
             val invitedUser = testUserId(2)
             val group = testGroup(users = NonEmptySet.of(invitingUser))
             stubGetById(group)
-            every { groupRepo.getById(group.id) } returns null
+            every { groupRepo.findById(group.id) } returns null
             service.addUserToGroup(
                 invitingUser,
                 invitedUser,

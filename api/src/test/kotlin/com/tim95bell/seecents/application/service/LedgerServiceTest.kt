@@ -43,7 +43,7 @@ class LedgerServiceTest {
         }
 
     private fun stubGroupFound(group: Group?) {
-        every { groupRepo.getById(any()) } returns group
+        every { groupRepo.findById(any()) } returns group
     }
 
     private fun stubSaveSucceeds() {

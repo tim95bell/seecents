@@ -1,8 +1,6 @@
 package com.tim95bell.seecents.application.service
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
-import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.toNonEmptySetOrNone
@@ -47,7 +45,7 @@ class LedgerService(
     ): Either<EntryCreateError, LedgerEntry> {
         val now = Instant.now()
 
-        val group = groupRepo.getById(groupId)
+        val group = groupRepo.findById(groupId)
             ?: return EntryCreateError.GroupNotFound(groupId).left()
 
         if (lines.any {

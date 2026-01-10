@@ -7,5 +7,5 @@ import com.tim95bell.seecents.domain.model.GroupId
 interface GroupRepository {
     fun save(group: GroupCore): Group
     fun update(group: Group): Group
-    fun getById(id: GroupId): Group?
+    fun findById(id: GroupId): Group?
 }

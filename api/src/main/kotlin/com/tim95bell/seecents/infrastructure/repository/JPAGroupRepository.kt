@@ -16,7 +16,7 @@ class JPAGroupRepository : GroupRepository {
         TODO("Not yet implemented")
     }
 
-    override fun getById(id: GroupId): Group? {
+    override fun findById(id: GroupId): Group? {
         TODO("Not yet implemented")
     }
 }

@@ -35,7 +35,7 @@ class GroupService(
     }
 
     fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Either<AddUserToGroupError, Group> {
-        val group = groupRepo.getById(groupId) ?: return AddUserToGroupError.GroupNotFound(groupId).left()
+        val group = groupRepo.findById(groupId) ?: return AddUserToGroupError.GroupNotFound(groupId).left()
 
         return group.core.addUser(invitingUser, invitedUser)
             .mapLeft(AddUserToGroupError::CoreError)
