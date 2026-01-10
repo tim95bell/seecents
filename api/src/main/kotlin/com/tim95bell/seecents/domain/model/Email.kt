@@ -1,7 +1,7 @@
 package com.tim95bell.seecents.domain.model
 
 import com.tim95bell.seecents.common.fp.*
-import javax.mail.internet.InternetAddress
+import jakarta.mail.internet.InternetAddress
 
 @JvmInline
 value class Email private constructor(val value: String) {
