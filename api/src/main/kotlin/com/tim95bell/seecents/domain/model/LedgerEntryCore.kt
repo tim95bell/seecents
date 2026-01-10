@@ -1,6 +1,7 @@
 package com.tim95bell.seecents.domain.model
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import java.time.Instant
@@ -12,10 +13,9 @@ data class LedgerEntryCore private constructor(
     val creatorId: UserId,
     val createdAt: Instant,
     val effectiveAt: Instant,
-    val lines: List<LedgerEntryLineCore>,
+    val lines: NonEmptyList<LedgerEntryLineCore>,
 ) {
     sealed interface CreateError {
-        data object EmptyLinesError : CreateError
         data object EffectiveDateAfterCreationError : CreateError
         data object PaymentFromIdEqualsToIdError : CreateError
         data object CreatorNotInGroupError : CreateError
@@ -29,12 +29,8 @@ data class LedgerEntryCore private constructor(
             creatorId: UserId,
             createdAt: Instant,
             effectiveAt: Instant,
-            lines: List<LedgerEntryLineCore>,
+            lines: NonEmptyList<LedgerEntryLineCore>,
         ): Either<CreateError, LedgerEntryCore> {
-            if (lines.isEmpty()) {
-                return CreateError.EmptyLinesError.left()
-            }
-
             if (!group.core.users.contains(creatorId)) {
                 return CreateError.CreatorNotInGroupError.left()
             }

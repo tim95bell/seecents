@@ -1,5 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import org.junit.jupiter.api.Test
 
@@ -10,14 +11,9 @@ class LedgerEntryCoreTest {
     }
 
     @Test
-    fun `can NOT have 0 lines in an entry`() {
-        testEntry(lines = emptyList()).assertLeftEq(LedgerEntryCore.CreateError.EmptyLinesError)
-    }
-
-    @Test
     fun `can have 1 line in an entry`() {
         testLine().flatMap { line ->
-            testEntry(lines = listOf(line))
+            testEntry(lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
@@ -50,28 +46,28 @@ class LedgerEntryCoreTest {
     @Test
     fun `expense entries can contain lines where fromId equals toId`() {
         testLine(from = 1, to = 1).flatMap { line ->
-            testEntry(type = LedgerEntryType.Expense, lines = listOf(line))
+            testEntry(type = LedgerEntryType.Expense, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
     @Test
     fun `payment entries can NOT contain lines where fromId equals toId`() {
         testLine(from = 1, to = 1).flatMap { line ->
-            testEntry(type = LedgerEntryType.Payment, lines = listOf(line))
+            testEntry(type = LedgerEntryType.Payment, lines = NonEmptyList.of(line))
         }.assertLeftEq(LedgerEntryCore.CreateError.PaymentFromIdEqualsToIdError)
     }
 
     @Test
     fun `expense entries can contain lines where fromId NOT equals toId`() {
         testLine(from = 1, to = 2).flatMap { line ->
-            testEntry(type = LedgerEntryType.Expense, lines = listOf(line))
+            testEntry(type = LedgerEntryType.Expense, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
     @Test
     fun `payment entries can contain lines where fromId NOT equals toId`() {
         testLine(from = 1, to = 2).flatMap { line ->
-            testEntry(type = LedgerEntryType.Payment, lines = listOf(line))
+            testEntry(type = LedgerEntryType.Payment, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
@@ -82,13 +78,13 @@ class LedgerEntryCoreTest {
 
     @Test
     fun `can NOT have line fromId that is not in group`() {
-        testEntry(lines = listOf(testLine(from = 3).assertRight().value))
+        testEntry(lines = NonEmptyList.of(testLine(from = 3).assertRight().value))
             .assertLeftEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
     }
 
     @Test
     fun `can NOT have line toId that is not in group`() {
-        testEntry(lines = listOf(testLine(to = 3).assertRight().value))
+        testEntry(lines = NonEmptyList.of(testLine(to = 3).assertRight().value))
             .assertLeftEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
     }
 }

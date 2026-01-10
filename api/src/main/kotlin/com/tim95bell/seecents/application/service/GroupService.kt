@@ -1,10 +1,12 @@
 package com.tim95bell.seecents.application.service
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.left
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.GroupId
+import com.tim95bell.seecents.domain.model.GroupName
 import com.tim95bell.seecents.domain.model.UserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import org.springframework.stereotype.Service
@@ -15,12 +17,15 @@ class GroupService(
     private val groupRepo: GroupRepository,
 ) {
     sealed interface CreateGroupError {
-        data class CoreError(val coreError: GroupCore.CreateError) : CreateGroupError
+        data object InvalidName : CreateGroupError
     }
 
     fun createGroup(creator: UserId, name: String, currency: Currency): Either<CreateGroupError, Group> {
-        return GroupCore.create(creator, name, currency)
-            .mapLeft(CreateGroupError::CoreError)
+        return GroupName.fromInput(name)
+            .mapLeft { CreateGroupError.InvalidName }
+            .map { name ->
+                GroupCore(name, currency, NonEmptySet.of(creator))
+            }
             .map(groupRepo::save)
     }
 

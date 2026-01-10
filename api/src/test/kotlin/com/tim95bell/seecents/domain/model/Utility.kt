@@ -1,6 +1,8 @@
 package com.tim95bell.seecents.domain.model
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.NonEmptySet
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
@@ -52,12 +54,12 @@ fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwo
 fun testGroup(
     id: Int = 1,
     currency: Currency = AUD,
-    users: Set<UserId> = setOf(testUserId(1), testUserId(2))
-) = Group(testGroupId(id), GroupCore.create(
+    users: NonEmptySet<UserId> = NonEmptySet.of(testUserId(1), testUserId(2))
+) = Group(testGroupId(id), GroupCore(
     currency = currency,
-    name = "test",
+    name = GroupName.fromCanonical("test").assertRight().value,
     users = users,
-).assertRight().value)
+))
 
 fun testLine(
     from: Int = 1,
@@ -73,12 +75,12 @@ fun testEntry(
     type: LedgerEntryType = LedgerEntryType.Expense,
     createdAt: Instant = T0,
     effectiveAt: Instant = T0,
-    group: Group = Group(testGroupId(), GroupCore.create(
-        setOf(testUserId(1), testUserId(2)),
-        "test",
+    group: Group = Group(testGroupId(), GroupCore(
+        GroupName.fromCanonical("test").assertRight().value,
         AUD,
-    ).assertRight().value),
-    lines: List<LedgerEntryLineCore> = listOf(
+        NonEmptySet.of(testUserId(1), testUserId(2)),
+    )),
+    lines: NonEmptyList<LedgerEntryLineCore> = NonEmptyList.of(
         LedgerEntryLineCore.create(
             testUserId(1),
             testUserId(2),

@@ -199,7 +199,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EmptyLinesError))
+            result.assertLeftEq(LedgerService.EntryCreateError.EmptyLines)
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }

@@ -1,9 +1,11 @@
 package com.tim95bell.seecents.application.service
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.raise.either
+import arrow.core.toNonEmptySetOrNone
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
@@ -33,6 +35,7 @@ class LedgerService(
         data class CoreError(val coreError: LedgerEntryCore.CreateError): EntryCreateError
         data class GroupNotFound(val groupId: GroupId): EntryCreateError
         data object CurrencyMismatch: EntryCreateError
+        data object EmptyLines : EntryCreateError
     }
 
     fun createEntry(
@@ -53,16 +56,20 @@ class LedgerService(
             return EntryCreateError.CurrencyMismatch.left()
         }
 
-        return lines.map {
-            LedgerEntryLineCore.create(
-                fromId = it.fromId,
-                toId = it.toId,
-                amount = it.amount,
-            ).mapLeft { error ->
-                EntryCreateError.LineError(error)
-            }
-        }.let { either { it.bindAll() } }.flatMap { lines ->
-            LedgerEntryCore.create(
+        return either {
+            val createLines = lines.toNonEmptySetOrNone().toEither {
+                EntryCreateError.EmptyLines
+            }.bind()
+
+            val lines = createLines.map {
+                LedgerEntryLineCore.create(
+                    fromId = it.fromId,
+                    toId = it.toId,
+                    amount = it.amount,
+                ).mapLeft(EntryCreateError::LineError)
+            }.let { either { it.bindAll() } }.bind()
+
+            val core = LedgerEntryCore.create(
                 group = group,
                 creatorId = creatorId,
                 type = type,
@@ -71,9 +78,9 @@ class LedgerService(
                 lines = lines,
             ).mapLeft {
                 EntryCreateError.CoreError(it)
-            }
-        }.map {
-            ledgerEntryRepo.save(it)
+            }.bind()
+
+            ledgerEntryRepo.save(core)
         }
     }
 }
