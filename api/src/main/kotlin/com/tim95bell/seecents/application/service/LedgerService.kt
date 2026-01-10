@@ -16,7 +16,6 @@ import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
 
-
 @Service
 class LedgerService(
     private val ledgerEntryRepo: LedgerEntryRepository,

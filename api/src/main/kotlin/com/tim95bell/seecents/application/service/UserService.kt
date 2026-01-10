@@ -27,20 +27,20 @@ class UserService(
         name: String,
         email: String,
         passwordHash: PasswordHash
-    ): Either<CreateAccountError, User> {
-        return Email.fromInput(email)
+    ): Either<CreateAccountError, User> = either {
+        val email = Email.fromInput(email)
             .mapLeft { CreateAccountError.InvalidEmail }
-            .flatMap { email ->
-                UserName.fromInput(name)
-                    .mapLeft { CreateAccountError.InvalidName }
-                    .flatMap { name ->
-                        if (userRepo.findByEmail(email) != null) {
-                            CreateAccountError.EmailAlreadyExists.left()
-                        } else {
-                            userRepo.save(UserCore(name, email, passwordHash)).right()
-                        }
-                    }
-            }
+            .bind()
+
+        val name = UserName.fromInput(name)
+            .mapLeft { CreateAccountError.InvalidName }
+            .bind()
+
+        if (userRepo.findByEmail(email) != null) {
+            raise(CreateAccountError.EmailAlreadyExists)
+        } else {
+            userRepo.save(UserCore(name, email, passwordHash))
+        }
     }
 
     sealed interface LoginError {
