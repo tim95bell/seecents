@@ -1,8 +1,11 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import java.time.Instant
 
+@ConsistentCopyVisibility
 data class LedgerEntryCore private constructor(
     val type: LedgerEntryType,
     val groupId: GroupId,
@@ -27,44 +30,44 @@ data class LedgerEntryCore private constructor(
             createdAt: Instant,
             effectiveAt: Instant,
             lines: List<LedgerEntryLineCore>,
-        ): Result<CreateError, LedgerEntryCore> {
+        ): Either<CreateError, LedgerEntryCore> {
             if (lines.isEmpty()) {
-                return error(CreateError.EmptyLinesError)
+                return CreateError.EmptyLinesError.left()
             }
 
             if (!group.core.users.contains(creatorId)) {
-                return error(CreateError.CreatorNotInGroupError)
+                return CreateError.CreatorNotInGroupError.left()
             }
 
             if (lines.any {
                 !group.core.users.contains(it.fromId) ||
                         !group.core.users.contains(it.toId)
             }) {
-                return error(CreateError.LineUserNotInGroupError)
+                return CreateError.LineUserNotInGroupError.left()
             }
 
             if (effectiveAt > createdAt) {
-                return error(CreateError.EffectiveDateAfterCreationError)
+                return CreateError.EffectiveDateAfterCreationError.left()
             }
 
             when (type) {
                 LedgerEntryType.Payment -> {
                     if (lines.any { it.fromId == it.toId }) {
-                        return error(CreateError.PaymentFromIdEqualsToIdError)
+                        return CreateError.PaymentFromIdEqualsToIdError.left()
                     }
                 }
                 LedgerEntryType.Expense -> {
                 }
             }
 
-            return ok(LedgerEntryCore(
+            return LedgerEntryCore(
                 type = type,
                 groupId = group.id,
                 creatorId = creatorId,
                 createdAt = createdAt,
                 effectiveAt = effectiveAt,
                 lines = lines
-            ))
+            ).right()
         }
     }
 }

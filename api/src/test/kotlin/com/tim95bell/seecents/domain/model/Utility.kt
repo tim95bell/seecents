@@ -1,10 +1,33 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
 import java.util.Currency
+import kotlin.test.assertEquals
+
+fun <L, R> Either<L, R>.assertLeft(): Either.Left<L> {
+    require(this is Either.Left<L>)
+    return this
+}
+
+fun <L, R> Either<L, R>.assertRight(): Either.Right<R> {
+    require(this is Either.Right<R>)
+    return this
+}
+
+fun <L, R> Either<L, R>.assertLeftEq(expected: L): Either.Left<L> {
+    require(this is Either.Left<L>)
+    assertEquals(expected, this.value)
+    return this
+}
+
+fun <L, R> Either<L, R>.assertRightEq(expected: R): Either.Right<R> {
+    require(this is Either.Right<R>)
+    assertEquals(expected, this.value)
+    return this
+}
 
 const val DEFAULT_MONEY_AMOUNT = 10L
 val AUD: Currency = Currency.getInstance("AUD")
@@ -20,8 +43,8 @@ fun testGroupId(id: Int = 1) = GroupId("g$id")
 
 fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwordHash: String = "password"): UserCore {
     return UserCore(
-        UserName.fromCanonical(name).assertOk().value,
-        Email.fromCanonical(email).assertOk().value,
+        UserName.fromCanonical(name).assertRight().value,
+        Email.fromCanonical(email).assertRight().value,
         PasswordHash(passwordHash),
     )
 }
@@ -34,7 +57,7 @@ fun testGroup(
     currency = currency,
     name = "test",
     users = users,
-).assertOk().value)
+).assertRight().value)
 
 fun testLine(
     from: Int = 1,
@@ -54,16 +77,16 @@ fun testEntry(
         setOf(testUserId(1), testUserId(2)),
         "test",
         AUD,
-    ).assertOk().value),
+    ).assertRight().value),
     lines: List<LedgerEntryLineCore> = listOf(
         LedgerEntryLineCore.create(
             testUserId(1),
             testUserId(2),
             testMoney()
-        ).assertOk().value
+        ).assertRight().value
     ),
     creatorId: UserId = testUserId(1),
-): Result<LedgerEntryCore.CreateError, LedgerEntryCore> {
+): Either<LedgerEntryCore.CreateError, LedgerEntryCore> {
     return LedgerEntryCore.create(
         type,
         group,

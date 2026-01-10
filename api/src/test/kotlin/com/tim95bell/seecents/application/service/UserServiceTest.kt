@@ -1,16 +1,16 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.*
 import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.User
 import com.tim95bell.seecents.domain.model.UserCore
+import com.tim95bell.seecents.domain.model.assertLeftEq
+import com.tim95bell.seecents.domain.model.assertRightEq
 import com.tim95bell.seecents.domain.model.testUserCore
 import com.tim95bell.seecents.domain.model.testUserId
 import com.tim95bell.seecents.domain.repository.UserRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import kotlin.test.Test
@@ -44,14 +44,11 @@ class UserServiceTest {
             val userCore = testUserCore()
             stubFindByEmail(userCore.email)
             stubSave(userCore)
-            val user = userService.createAccount(
+            userService.createAccount(
                 userCore.name.value,
                 userCore.email.value,
                 userCore.passwordHash,
-            ).assertOk().value
-            assertEquals(userCore.name, user.core.name)
-            assertEquals(userCore.email, user.core.email)
-            assertEquals(userCore.passwordHash, user.core.passwordHash)
+            ).map { it.core }.assertRightEq(userCore)
             verify(exactly = 1) {
                 userRepo.findByEmail(userCore.email)
             }
@@ -64,11 +61,11 @@ class UserServiceTest {
         fun `fails for valid input where email already exists`() {
             val userCore = testUserCore()
             stubFindByEmail(User(testUserId(), userCore))
-            val user = userService.createAccount(
+            userService.createAccount(
                 userCore.name.value,
                 userCore.email.value,
                 userCore.passwordHash,
-            ).assertErrorEq(UserService.CreateAccountError.EmailAlreadyExists)
+            ).assertLeftEq(UserService.CreateAccountError.EmailAlreadyExists)
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.raise.either
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
@@ -12,6 +15,7 @@ import com.tim95bell.seecents.domain.repository.GroupRepository
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
 import org.springframework.stereotype.Service
 import java.time.Instant
+
 
 @Service
 class LedgerService(
@@ -37,16 +41,16 @@ class LedgerService(
         creatorId: UserId,
         effectiveAt: Instant,
         lines: List<CreateEntryLine>,
-    ): Result<EntryCreateError, LedgerEntry> {
+    ): Either<EntryCreateError, LedgerEntry> {
         val now = Instant.now()
 
         val group = groupRepo.getById(groupId)
-            ?: return error(EntryCreateError.GroupNotFound(groupId))
+            ?: return EntryCreateError.GroupNotFound(groupId).left()
 
         if (lines.any {
             it.amount.currency != group.core.currency
         }) {
-            return error(EntryCreateError.CurrencyMismatch)
+            return EntryCreateError.CurrencyMismatch.left()
         }
 
         return lines.map {
@@ -54,10 +58,10 @@ class LedgerService(
                 fromId = it.fromId,
                 toId = it.toId,
                 amount = it.amount,
-            ).mapError {
-                EntryCreateError.LineError(it)
+            ).mapLeft { error ->
+                EntryCreateError.LineError(error)
             }
-        }.sequence().flatMap { lines ->
+        }.let { either { it.bindAll() } }.flatMap { lines ->
             LedgerEntryCore.create(
                 group = group,
                 creatorId = creatorId,
@@ -65,7 +69,7 @@ class LedgerService(
                 createdAt = now,
                 effectiveAt = effectiveAt,
                 lines = lines,
-            ).mapError {
+            ).mapLeft {
                 EntryCreateError.CoreError(it)
             }
         }.map {

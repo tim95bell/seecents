@@ -1,6 +1,8 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import jakarta.mail.internet.InternetAddress
 
 @JvmInline
@@ -10,13 +12,13 @@ value class Email private constructor(val value: String) {
     }
 
     companion object {
-        fun fromInput(raw: String): Result<Error, Email> {
+        fun fromInput(raw: String): Either<Error, Email> {
             return create(normalise(raw))
         }
 
-        fun fromCanonical(raw: String): Result<Error, Email> {
+        fun fromCanonical(raw: String): Either<Error, Email> {
             if (raw != normalise(raw)) {
-                return error(Error.Invalid)
+                return Error.Invalid.left()
             }
 
             return create(raw)
@@ -24,12 +26,12 @@ value class Email private constructor(val value: String) {
 
         private fun normalise(raw: String) = raw.trim().lowercase()
 
-        private fun create(canonical: String): Result<Error, Email> {
+        private fun create(canonical: String): Either<Error, Email> {
             return try {
                 InternetAddress(canonical).validate()
-                ok(Email(canonical))
-            } catch (e: Exception) {
-                error(Error.Invalid)
+                Email(canonical).right()
+            } catch (_: Exception) {
+                Error.Invalid.left()
             }
         }
     }

@@ -1,93 +1,94 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.flatMap
 import org.junit.jupiter.api.Test
 
 class LedgerEntryCoreTest {
     @Test
     fun `can create valid entry`() {
-        testEntry().assertOk()
+        testEntry().assertRight()
     }
 
     @Test
     fun `can NOT have 0 lines in an entry`() {
-        testEntry(lines = emptyList()).assertErrorEq(LedgerEntryCore.CreateError.EmptyLinesError)
+        testEntry(lines = emptyList()).assertLeftEq(LedgerEntryCore.CreateError.EmptyLinesError)
     }
 
     @Test
     fun `can have 1 line in an entry`() {
         testLine().flatMap { line ->
             testEntry(lines = listOf(line))
-        }.assertOk()
+        }.assertRight()
     }
 
     @Test
     fun `can have equal createdAt and effectiveAt in an entry`() {
-        testEntry(createdAt = T0, effectiveAt = T0).assertOk()
+        testEntry(createdAt = T0, effectiveAt = T0).assertRight()
     }
 
     @Test
     fun `can have createdAt greater than effectiveAt in an entry`() {
-        testEntry(createdAt = T1, effectiveAt = T0).assertOk()
+        testEntry(createdAt = T1, effectiveAt = T0).assertRight()
     }
 
     @Test
     fun `can NOT have createdAt smaller than effectiveAt in an entry`() {
-        testEntry(createdAt = T0, effectiveAt = T1).assertErrorEq(LedgerEntryCore.CreateError.EffectiveDateAfterCreationError)
+        testEntry(createdAt = T0, effectiveAt = T1)
+            .assertLeftEq(LedgerEntryCore.CreateError.EffectiveDateAfterCreationError)
     }
 
     @Test
     fun `can have Expense type in an entry`() {
-        testEntry(type = LedgerEntryType.Expense).assertOk()
+        testEntry(type = LedgerEntryType.Expense).assertRight()
     }
 
     @Test
     fun `can have Payment type in an entry`() {
-        testEntry(type = LedgerEntryType.Payment).assertOk()
+        testEntry(type = LedgerEntryType.Payment).assertRight()
     }
 
     @Test
     fun `expense entries can contain lines where fromId equals toId`() {
         testLine(from = 1, to = 1).flatMap { line ->
             testEntry(type = LedgerEntryType.Expense, lines = listOf(line))
-        }.assertOk()
+        }.assertRight()
     }
 
     @Test
     fun `payment entries can NOT contain lines where fromId equals toId`() {
         testLine(from = 1, to = 1).flatMap { line ->
             testEntry(type = LedgerEntryType.Payment, lines = listOf(line))
-        }.assertErrorEq(LedgerEntryCore.CreateError.PaymentFromIdEqualsToIdError)
+        }.assertLeftEq(LedgerEntryCore.CreateError.PaymentFromIdEqualsToIdError)
     }
 
     @Test
     fun `expense entries can contain lines where fromId NOT equals toId`() {
         testLine(from = 1, to = 2).flatMap { line ->
             testEntry(type = LedgerEntryType.Expense, lines = listOf(line))
-        }.assertOk()
+        }.assertRight()
     }
 
     @Test
     fun `payment entries can contain lines where fromId NOT equals toId`() {
         testLine(from = 1, to = 2).flatMap { line ->
             testEntry(type = LedgerEntryType.Payment, lines = listOf(line))
-        }.assertOk()
+        }.assertRight()
     }
 
     @Test
     fun `can NOT have creatorId that is not in group`() {
-        testEntry(creatorId = testUserId(3)).assertErrorEq(LedgerEntryCore.CreateError.CreatorNotInGroupError)
+        testEntry(creatorId = testUserId(3)).assertLeftEq(LedgerEntryCore.CreateError.CreatorNotInGroupError)
     }
 
     @Test
     fun `can NOT have line fromId that is not in group`() {
-        testEntry(lines = listOf(testLine(from = 3).assertOk().value))
-            .assertErrorEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
+        testEntry(lines = listOf(testLine(from = 3).assertRight().value))
+            .assertLeftEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
     }
 
     @Test
     fun `can NOT have line toId that is not in group`() {
-        testEntry(lines = listOf(testLine(to = 3).assertOk().value))
-            .assertErrorEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
+        testEntry(lines = listOf(testLine(to = 3).assertRight().value))
+            .assertLeftEq(LedgerEntryCore.CreateError.LineUserNotInGroupError)
     }
 }

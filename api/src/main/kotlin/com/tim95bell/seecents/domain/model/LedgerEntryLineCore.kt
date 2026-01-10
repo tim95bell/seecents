@@ -1,7 +1,10 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 
+@ConsistentCopyVisibility
 data class LedgerEntryLineCore private constructor(
     val fromId: UserId,
     val toId: UserId,
@@ -16,12 +19,12 @@ data class LedgerEntryLineCore private constructor(
             fromId: UserId,
             toId: UserId,
             amount: MoneyAmount,
-        ) : Result<CreateError, LedgerEntryLineCore> {
+        ) : Either<CreateError, LedgerEntryLineCore> {
             if (amount.amount <= 0) {
-                return error(CreateError.NonPositiveAmount)
+                return CreateError.NonPositiveAmount.left()
             }
 
-            return ok(LedgerEntryLineCore(fromId, toId, amount))
+            return LedgerEntryLineCore(fromId, toId, amount).right()
         }
     }
 }

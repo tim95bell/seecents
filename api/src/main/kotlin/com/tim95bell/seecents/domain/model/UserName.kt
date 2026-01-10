@@ -1,6 +1,9 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 
 @JvmInline
 value class UserName private constructor(val value: String) {
@@ -9,22 +12,22 @@ value class UserName private constructor(val value: String) {
     }
 
     companion object {
-        fun fromInput(raw: String): Result<Error, UserName> {
+        fun fromInput(raw: String): Either<Error, UserName> {
             val trimmed = raw.trim()
             if (trimmed.isBlank()) {
-                return error(Error.Invalid)
+                return Error.Invalid.left()
             }
 
-            return ok(UserName(trimmed))
+            return UserName(trimmed).right()
         }
 
-        fun fromCanonical(raw: String): Result<Error, UserName> {
+        fun fromCanonical(raw: String): Either<Error, UserName> {
             return fromInput(raw)
                 .flatMap {
                     if (it.value != raw) {
-                        error(Error.Invalid)
+                        Error.Invalid.left()
                     } else {
-                        ok(it)
+                        it.right()
                     }
                 }
         }

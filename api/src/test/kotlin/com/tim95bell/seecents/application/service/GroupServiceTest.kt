@@ -1,9 +1,11 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.*
 import com.tim95bell.seecents.domain.model.AUD
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
+import com.tim95bell.seecents.domain.model.assertLeft
+import com.tim95bell.seecents.domain.model.assertLeftEq
+import com.tim95bell.seecents.domain.model.assertRight
 import com.tim95bell.seecents.domain.model.testGroup
 import com.tim95bell.seecents.domain.model.testUserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
@@ -12,7 +14,6 @@ import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class GroupServiceTest {
     private lateinit var groupRepo: GroupRepository
@@ -45,7 +46,7 @@ class GroupServiceTest {
                 testUserId(),
                 "test",
                 AUD,
-            ).assertOk()
+            ).assertRight()
         }
 
         @Test
@@ -54,7 +55,7 @@ class GroupServiceTest {
                 testUserId(),
                 "  \t\n  ",
                 AUD,
-            ).assertErrorEq(GroupService.CreateGroupError.CoreError(GroupCore.CreateError.EmptyName))
+            ).assertLeftEq(GroupService.CreateGroupError.CoreError(GroupCore.CreateError.EmptyName))
         }
 
         @Test
@@ -63,7 +64,7 @@ class GroupServiceTest {
                 testUserId(),
                 "",
                 AUD,
-            ).assertErrorEq(GroupService.CreateGroupError.CoreError(GroupCore.CreateError.EmptyName))
+            ).assertLeftEq(GroupService.CreateGroupError.CoreError(GroupCore.CreateError.EmptyName))
         }
     }
 
@@ -80,7 +81,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertOk()
+            ).assertRight()
         }
 
         @Test
@@ -90,12 +91,11 @@ class GroupServiceTest {
             val group = testGroup(users = setOf(invitingUser))
             stubGetById(group)
             every { groupRepo.getById(group.id) } returns null
-            val error = service.addUserToGroup(
+            service.addUserToGroup(
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertError().error
-            assertEquals(GroupService.AddUserToGroupError.GroupNotFound(group.id), error)
+            ).assertLeftEq(GroupService.AddUserToGroupError.GroupNotFound(group.id))
         }
 
         @Test
@@ -104,12 +104,11 @@ class GroupServiceTest {
             val invitedUser = testUserId(2)
             val group = testGroup(users = setOf(invitingUser, invitedUser))
             stubGetById(group)
-            val error = service.addUserToGroup(
+            service.addUserToGroup(
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertError().error
-            assertEquals(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitedUserAlreadyInGroup), error)
+            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitedUserAlreadyInGroup))
         }
 
         @Test
@@ -122,7 +121,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertError()
+            ).assertLeft()
         }
 
         @Test
@@ -132,12 +131,11 @@ class GroupServiceTest {
             val group = testGroup(users = setOf(testUserId(3)))
             stubSave()
             stubGetById(group)
-            val error = service.addUserToGroup(
+            service.addUserToGroup(
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertError().error
-            assertEquals(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitingUserNotInGroup), error)
+            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitingUserNotInGroup))
         }
     }
 }

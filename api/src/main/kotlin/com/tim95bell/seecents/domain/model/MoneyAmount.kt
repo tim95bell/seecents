@@ -1,6 +1,8 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import java.util.Currency
 
 data class MoneyAmount(
@@ -11,11 +13,11 @@ data class MoneyAmount(
         data object CombineDifferingCurrenciesError : CombineError
     }
 
-    fun combine(other: MoneyAmount, block: (Long, Long) -> Long): Result<CombineError, MoneyAmount> {
+    fun combine(other: MoneyAmount, block: (Long, Long) -> Long): Either<CombineError, MoneyAmount> {
         if (this.currency != other.currency) {
-            return error(CombineError.CombineDifferingCurrenciesError)
+            return CombineError.CombineDifferingCurrenciesError.left()
         }
 
-        return ok(MoneyAmount(currency, block(amount, other.amount)))
+        return MoneyAmount(currency, block(amount, other.amount)).right()
     }
 }

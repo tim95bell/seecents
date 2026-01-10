@@ -1,6 +1,7 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.GroupId
@@ -17,9 +18,9 @@ class GroupService(
         data class CoreError(val coreError: GroupCore.CreateError) : CreateGroupError
     }
 
-    fun createGroup(creator: UserId, name: String, currency: Currency): Result<CreateGroupError, Group> {
+    fun createGroup(creator: UserId, name: String, currency: Currency): Either<CreateGroupError, Group> {
         return GroupCore.create(creator, name, currency)
-            .mapError(CreateGroupError::CoreError)
+            .mapLeft(CreateGroupError::CoreError)
             .map(groupRepo::save)
     }
 
@@ -28,11 +29,11 @@ class GroupService(
         data class CoreError(val coreError: GroupCore.AddUserError) : AddUserToGroupError
     }
 
-    fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Result<AddUserToGroupError, Group> {
-        val group = groupRepo.getById(groupId) ?: return error(AddUserToGroupError.GroupNotFound(groupId))
+    fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Either<AddUserToGroupError, Group> {
+        val group = groupRepo.getById(groupId) ?: return AddUserToGroupError.GroupNotFound(groupId).left()
 
         return group.core.addUser(invitingUser, invitedUser)
-            .mapError(AddUserToGroupError::CoreError)
+            .mapLeft(AddUserToGroupError::CoreError)
             .map {
                 groupRepo.update(group.copy(core = it))
             }

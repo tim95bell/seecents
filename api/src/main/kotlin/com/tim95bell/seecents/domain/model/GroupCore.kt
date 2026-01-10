@@ -1,8 +1,11 @@
 package com.tim95bell.seecents.domain.model
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import java.util.Currency
 
+@ConsistentCopyVisibility
 data class GroupCore private constructor(
     val name: String,
     val currency: Currency,
@@ -20,24 +23,24 @@ data class GroupCore private constructor(
             return trimmedName
         }
 
-        fun create(creator: UserId, name: String, currency: Currency): Result<CreateError, GroupCore> {
+        fun create(creator: UserId, name: String, currency: Currency): Either<CreateError, GroupCore> {
             val validatedName = try {
                 validateName(name)
-            } catch (e: Exception) {
-                return error(CreateError.EmptyName)
+            } catch (_: Exception) {
+                return CreateError.EmptyName.left()
             }
 
-            return ok(GroupCore(validatedName, currency, setOf(creator)))
+            return GroupCore(validatedName, currency, setOf(creator)).right()
         }
 
-        fun create(users: Set<UserId>, name: String, currency: Currency): Result<CreateError, GroupCore> {
+        fun create(users: Set<UserId>, name: String, currency: Currency): Either<CreateError, GroupCore> {
             val validatedName = try {
                 validateName(name)
-            } catch (e: Exception) {
-                return error(CreateError.EmptyName)
+            } catch (_: Exception) {
+                return CreateError.EmptyName.left()
             }
 
-            return ok(GroupCore(validatedName, currency, users))
+            return GroupCore(validatedName, currency, users).right()
         }
     }
 
@@ -46,17 +49,17 @@ data class GroupCore private constructor(
         data object InvitedUserAlreadyInGroup : AddUserError
     }
 
-    fun addUser(invitingUser: UserId, invitedUser: UserId): Result<AddUserError, GroupCore> {
+    fun addUser(invitingUser: UserId, invitedUser: UserId): Either<AddUserError, GroupCore> {
         if (!users.contains(invitingUser)) {
-            return error(AddUserError.InvitingUserNotInGroup)
+            return AddUserError.InvitingUserNotInGroup.left()
         }
 
         if (users.contains(invitedUser)) {
-            return error(AddUserError.InvitedUserAlreadyInGroup)
+            return AddUserError.InvitedUserAlreadyInGroup.left()
         }
 
-        return ok(copy(
+        return copy(
             users = this.users + invitedUser,
-        ))
+        ).right()
     }
 }

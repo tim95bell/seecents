@@ -1,8 +1,5 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.assertError
-import com.tim95bell.seecents.common.fp.assertErrorEq
-import com.tim95bell.seecents.common.fp.assertOk
 import com.tim95bell.seecents.domain.model.AUD
 import com.tim95bell.seecents.domain.model.EUR
 import com.tim95bell.seecents.domain.model.Group
@@ -12,6 +9,9 @@ import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.T0
+import com.tim95bell.seecents.domain.model.assertLeft
+import com.tim95bell.seecents.domain.model.assertLeftEq
+import com.tim95bell.seecents.domain.model.assertRight
 import com.tim95bell.seecents.domain.model.testGroup
 import com.tim95bell.seecents.domain.model.testMoney
 import com.tim95bell.seecents.domain.model.testUserId
@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
-import kotlin.test.assertEquals
 
 class LedgerServiceTest {
     private lateinit var ledgerRepo: LedgerEntryRepository
@@ -79,7 +78,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertOk()
+            result.assertRight()
             verify(exactly = 1) {
                 ledgerRepo.save(any())
             }
@@ -104,7 +103,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertOk()
+            result.assertRight()
             verify(exactly = 1) {
                 ledgerRepo.save(any())
             }
@@ -128,7 +127,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.GroupNotFound(group.id))
+            result.assertLeftEq(LedgerService.EntryCreateError.GroupNotFound(group.id))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -152,7 +151,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.CurrencyMismatch)
+            result.assertLeftEq(LedgerService.EntryCreateError.CurrencyMismatch)
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -176,7 +175,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.LineError(LedgerEntryLineCore.CreateError.NonPositiveAmount))
+            result.assertLeftEq(LedgerService.EntryCreateError.LineError(LedgerEntryLineCore.CreateError.NonPositiveAmount))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -200,7 +199,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EmptyLinesError))
+            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EmptyLinesError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -224,7 +223,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EffectiveDateAfterCreationError))
+            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.EffectiveDateAfterCreationError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -256,7 +255,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertOk()
+            result.assertRight()
             verify(exactly = 1) {
                 ledgerRepo.save(any())
             }
@@ -287,7 +286,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(
+            result.assertLeftEq(
                 LedgerService.EntryCreateError.CoreError(
                     LedgerEntryCore.CreateError.PaymentFromIdEqualsToIdError
                 )
@@ -317,7 +316,7 @@ class LedgerServiceTest {
                 lines = lines,
             )
 
-            result.assertError()
+            result.assertLeft()
             verify(exactly = 0) { ledgerRepo.save(any()) }
         }
 
@@ -333,7 +332,7 @@ class LedgerServiceTest {
                 lines = emptyList()
             )
 
-            result.assertErrorEq(
+            result.assertLeftEq(
                 LedgerService.EntryCreateError.GroupNotFound(testGroup().id)
             )
         }
@@ -357,10 +356,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            assertEquals(
-                LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.CreatorNotInGroupError),
-                result.assertError().error
-            )
+            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.CreatorNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -391,7 +387,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
+            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -422,7 +418,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertErrorEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
+            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntryCore.CreateError.LineUserNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }

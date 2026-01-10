@@ -1,6 +1,9 @@
 package com.tim95bell.seecents.application.service
 
-import com.tim95bell.seecents.common.fp.*
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.PasswordHash
 import com.tim95bell.seecents.domain.model.User
@@ -23,17 +26,17 @@ class UserService(
         name: String,
         email: String,
         passwordHash: PasswordHash
-    ): Result<CreateAccountError, User> {
+    ): Either<CreateAccountError, User> {
         return Email.fromInput(email)
-            .mapError { CreateAccountError.InvalidEmail }
+            .mapLeft { CreateAccountError.InvalidEmail }
             .flatMap { email ->
                 UserName.fromInput(name)
-                    .mapError { CreateAccountError.InvalidName }
+                    .mapLeft { CreateAccountError.InvalidName }
                     .flatMap { name ->
                         if (userRepo.findByEmail(email) != null) {
-                            error(CreateAccountError.EmailAlreadyExists)
+                            CreateAccountError.EmailAlreadyExists.left()
                         } else {
-                            ok(userRepo.save(UserCore(name, email, passwordHash)))
+                            userRepo.save(UserCore(name, email, passwordHash)).right()
                         }
                     }
             }
