@@ -18,6 +18,14 @@ fun testUserId(id: Int = 1) = UserId("u$id")
 
 fun testGroupId(id: Int = 1) = GroupId("g$id")
 
+fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwordHash: String = "password"): UserCore {
+    return UserCore(
+        UserName.fromCanonical(name).assertOk().value,
+        Email.fromCanonical(email).assertOk().value,
+        PasswordHash(passwordHash),
+    )
+}
+
 fun testGroup(
     id: Int = 1,
     currency: Currency = AUD,
