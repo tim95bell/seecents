@@ -11,7 +11,7 @@ import java.util.Currency
 
 @Service
 class GroupService(
-    private val groupRepository: GroupRepository,
+    private val groupRepo: GroupRepository,
 ) {
     sealed interface CreateGroupError {
         data class CoreError(val coreError: GroupCore.CreateError) : CreateGroupError
@@ -20,7 +20,7 @@ class GroupService(
     fun createGroup(creator: UserId, name: String, currency: Currency): Result<CreateGroupError, Group> {
         return GroupCore.create(creator, name, currency)
             .mapError(CreateGroupError::CoreError)
-            .map(groupRepository::save)
+            .map(groupRepo::save)
     }
 
     sealed interface AddUserToGroupError {
@@ -29,12 +29,12 @@ class GroupService(
     }
 
     fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Result<AddUserToGroupError, Group> {
-        val group = groupRepository.getById(groupId) ?: return error(AddUserToGroupError.GroupNotFound(groupId))
+        val group = groupRepo.getById(groupId) ?: return error(AddUserToGroupError.GroupNotFound(groupId))
 
         return group.core.addUser(invitingUser, invitedUser)
             .mapError(AddUserToGroupError::CoreError)
             .map {
-                groupRepository.update(group.copy(core = it))
+                groupRepo.update(group.copy(core = it))
             }
     }
 }

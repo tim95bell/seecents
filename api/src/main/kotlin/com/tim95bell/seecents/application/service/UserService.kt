@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserService(
-    private val userRepository: UserRepository,
+    private val userRepo: UserRepository,
 ) {
     sealed interface CreateAccountError {
         data object InvalidEmail : CreateAccountError
@@ -30,10 +30,10 @@ class UserService(
                 UserName.fromInput(name)
                     .mapError { CreateAccountError.InvalidName }
                     .flatMap { name ->
-                        if (userRepository.findByEmail(email) != null) {
+                        if (userRepo.findByEmail(email) != null) {
                             error(CreateAccountError.EmailAlreadyExists)
                         } else {
-                            ok(userRepository.save(UserCore(name, email, passwordHash)))
+                            ok(userRepo.save(UserCore(name, email, passwordHash)))
                         }
                     }
             }

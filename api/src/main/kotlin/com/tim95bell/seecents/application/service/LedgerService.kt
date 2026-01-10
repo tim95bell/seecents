@@ -15,8 +15,8 @@ import java.time.Instant
 
 @Service
 class LedgerService(
-    private val ledgerEntryRepository: LedgerEntryRepository,
-    private val groupRepository: GroupRepository,
+    private val ledgerEntryRepo: LedgerEntryRepository,
+    private val groupRepo: GroupRepository,
 ) {
     data class CreateEntryLine(
         val fromId: UserId,
@@ -40,7 +40,7 @@ class LedgerService(
     ): Result<EntryCreateError, LedgerEntry> {
         val now = Instant.now()
 
-        val group = groupRepository.getById(groupId)
+        val group = groupRepo.getById(groupId)
             ?: return error(EntryCreateError.GroupNotFound(groupId))
 
         if (lines.any {
@@ -69,7 +69,7 @@ class LedgerService(
                 EntryCreateError.CoreError(it)
             }
         }.map {
-            ledgerEntryRepository.save(it)
+            ledgerEntryRepo.save(it)
         }
     }
 }
