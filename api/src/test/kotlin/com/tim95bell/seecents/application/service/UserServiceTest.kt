@@ -1,10 +1,12 @@
 package com.tim95bell.seecents.application.service
 
 import com.tim95bell.seecents.domain.model.Email
+import com.tim95bell.seecents.domain.model.PasswordHash
 import com.tim95bell.seecents.domain.model.User
 import com.tim95bell.seecents.domain.model.UserCore
 import com.tim95bell.seecents.domain.model.assertLeftEq
 import com.tim95bell.seecents.domain.model.assertRightEq
+import com.tim95bell.seecents.domain.model.testUser
 import com.tim95bell.seecents.domain.model.testUserCore
 import com.tim95bell.seecents.domain.model.testUserId
 import com.tim95bell.seecents.domain.repository.UserRepository
@@ -25,16 +27,20 @@ class UserServiceTest {
         userService = UserService(userRepo)
     }
 
-    fun stubFindByEmail(user: User) {
+    private fun stubFindByEmailNotFound(user: User) {
         every { userRepo.findByEmail(user.core.email) } returns user
     }
 
-    fun stubFindByEmail(email: Email) {
+    private fun stubFindByEmailNotFound(email: Email) {
         every { userRepo.findByEmail(email) } returns null
     }
 
-    fun stubSave(userCore: UserCore, id: Int = 1) {
-        every { userRepo.save(userCore) } returns User(testUserId(id), userCore)
+    private fun stubSave(userCore: UserCore, id: Int = 1) {
+        stubSave(User(testUserId(id), userCore))
+    }
+
+    private fun stubSave(user: User) {
+        every { userRepo.save(user.core) } returns user
     }
 
     @Nested
@@ -42,7 +48,7 @@ class UserServiceTest {
         @Test
         fun `succeeds for valid input`() {
             val userCore = testUserCore()
-            stubFindByEmail(userCore.email)
+            stubFindByEmailNotFound(userCore.email)
             stubSave(userCore)
             userService.createAccount(
                 userCore.name.value,
@@ -60,12 +66,49 @@ class UserServiceTest {
         @Test
         fun `fails for valid input where email already exists`() {
             val userCore = testUserCore()
-            stubFindByEmail(User(testUserId(), userCore))
+            stubFindByEmailNotFound(User(testUserId(), userCore))
             userService.createAccount(
                 userCore.name.value,
                 userCore.email.value,
                 userCore.passwordHash,
             ).assertLeftEq(UserService.CreateAccountError.EmailAlreadyExists)
+        }
+    }
+
+    @Nested
+    inner class Login {
+        @Test
+        fun `succeeds for valid input`() {
+            val user = testUser()
+            stubFindByEmailNotFound(user)
+            userService.login(user.core.email.value, user.core.passwordHash)
+                .assertRightEq(user)
+            verify(exactly = 1) { userRepo.findByEmail(user.core.email) }
+        }
+
+        @Test
+        fun `fails for user that does not exist`() {
+            val user = testUser()
+            stubFindByEmailNotFound(user.core.email)
+            userService.login(user.core.email.value, user.core.passwordHash)
+                .assertLeftEq(UserService.LoginError.Invalid)
+            verify(exactly = 1) { userRepo.findByEmail(user.core.email) }
+        }
+
+        @Test
+        fun `fails for user invalid email`() {
+            userService.login("test", PasswordHash("password"))
+                .assertLeftEq(UserService.LoginError.Invalid)
+            verify(exactly = 0) { userRepo.findByEmail(any()) }
+        }
+
+        @Test
+        fun `fails for user incorrect password`() {
+            val user = testUser()
+            stubFindByEmailNotFound(user)
+            userService.login(user.core.email.value, PasswordHash("differentPassword"))
+                .assertLeftEq(UserService.LoginError.Invalid)
+            verify(exactly = 1) { userRepo.findByEmail(user.core.email) }
         }
     }
 }

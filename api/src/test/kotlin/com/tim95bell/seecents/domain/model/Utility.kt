@@ -51,6 +51,18 @@ fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwo
     )
 }
 
+fun testUser(
+    id: Int = 1,
+    name: String = "test",
+    email: String = "test@gmail.com",
+    passwordHash: String = "password"
+): User {
+    return User(
+        testUserId(id),
+        testUserCore(name = name, email = email, passwordHash = passwordHash)
+    )
+}
+
 fun testGroup(
     id: Int = 1,
     currency: Currency = AUD,

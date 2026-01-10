@@ -3,6 +3,7 @@ package com.tim95bell.seecents.application.service
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
 import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.PasswordHash
@@ -40,5 +41,23 @@ class UserService(
                         }
                     }
             }
+    }
+
+    sealed interface LoginError {
+        data object Invalid : LoginError
+    }
+
+    fun login(email: String, passwordHash: PasswordHash): Either<LoginError, User> = either {
+        val email = Email.fromInput(email)
+            .mapLeft { LoginError.Invalid }
+            .bind()
+
+        val user = userRepo.findByEmail(email) ?: raise(LoginError.Invalid)
+
+        if (user.core.passwordHash != passwordHash) {
+            raise(LoginError.Invalid)
+        }
+
+        user
     }
 }
