@@ -4,11 +4,11 @@ import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.PasswordHash
 import com.tim95bell.seecents.domain.model.User
 import com.tim95bell.seecents.domain.model.UserCore
-import com.tim95bell.seecents.domain.model.assertLeftEq
-import com.tim95bell.seecents.domain.model.assertRightEq
-import com.tim95bell.seecents.domain.model.testUser
-import com.tim95bell.seecents.domain.model.testUserCore
-import com.tim95bell.seecents.domain.model.testUserId
+import com.tim95bell.seecents.testutil.assertLeftEq
+import com.tim95bell.seecents.testutil.assertRightEq
+import com.tim95bell.seecents.testutil.testUser
+import com.tim95bell.seecents.testutil.testUserCore
+import com.tim95bell.seecents.testutil.testUserId
 import com.tim95bell.seecents.domain.repository.UserRepository
 import io.mockk.every
 import io.mockk.mockk

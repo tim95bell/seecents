@@ -1,14 +1,14 @@
 package com.tim95bell.seecents.application.service
 
 import arrow.core.NonEmptySet
-import com.tim95bell.seecents.domain.model.AUD
+import com.tim95bell.seecents.testutil.AUD
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupCore
-import com.tim95bell.seecents.domain.model.assertLeft
-import com.tim95bell.seecents.domain.model.assertLeftEq
-import com.tim95bell.seecents.domain.model.assertRight
-import com.tim95bell.seecents.domain.model.testGroup
-import com.tim95bell.seecents.domain.model.testUserId
+import com.tim95bell.seecents.testutil.assertLeft
+import com.tim95bell.seecents.testutil.assertLeftEq
+import com.tim95bell.seecents.testutil.assertRight
+import com.tim95bell.seecents.testutil.testGroup
+import com.tim95bell.seecents.testutil.testUserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import io.mockk.every
 import io.mockk.mockk

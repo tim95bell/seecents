@@ -1,5 +1,8 @@
 package com.tim95bell.seecents.domain.model
 
+import com.tim95bell.seecents.testutil.assertLeftEq
+import com.tim95bell.seecents.testutil.assertRight
+import com.tim95bell.seecents.testutil.testLine
 import org.junit.jupiter.api.Test
 
 class LedgerEntryLineCoreTest {

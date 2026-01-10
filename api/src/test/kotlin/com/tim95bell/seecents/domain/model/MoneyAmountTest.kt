@@ -1,5 +1,10 @@
 package com.tim95bell.seecents.domain.model
 
+import com.tim95bell.seecents.testutil.AUD
+import com.tim95bell.seecents.testutil.EUR
+import com.tim95bell.seecents.testutil.assertLeftEq
+import com.tim95bell.seecents.testutil.assertRight
+import com.tim95bell.seecents.testutil.testMoney
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

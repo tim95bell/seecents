@@ -1,5 +1,7 @@
 package com.tim95bell.seecents.domain.model
 
+import com.tim95bell.seecents.testutil.assertLeftEq
+import com.tim95bell.seecents.testutil.assertRightEq
 import org.junit.jupiter.api.Nested
 import kotlin.test.Test
 
