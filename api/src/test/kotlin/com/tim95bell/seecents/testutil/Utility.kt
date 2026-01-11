@@ -7,7 +7,8 @@ import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.GroupName
-import com.tim95bell.seecents.domain.model.LedgerEntryCore
+import com.tim95bell.seecents.domain.model.LedgerEntry
+import com.tim95bell.seecents.domain.model.LedgerEntryId
 import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
@@ -98,6 +99,7 @@ fun testLine(
 )
 
 fun testEntry(
+    id: LedgerEntryId = LedgerEntryId.new(),
     type: LedgerEntryType = LedgerEntryType.Expense,
     createdAt: Instant = T0,
     effectiveAt: Instant = T0,
@@ -116,8 +118,9 @@ fun testEntry(
         ).assertRight().value
     ),
     creatorId: UserId = testUserId(1),
-): Either<LedgerEntryCore.CreateError, LedgerEntryCore> {
-    return LedgerEntryCore.create(
+): Either<LedgerEntry.CreateError, LedgerEntry> {
+    return LedgerEntry.create(
+        id,
         type,
         group,
         creatorId,

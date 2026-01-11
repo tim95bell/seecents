@@ -6,7 +6,7 @@ import arrow.core.raise.either
 import arrow.core.toNonEmptySetOrNone
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.LedgerEntry
-import com.tim95bell.seecents.domain.model.LedgerEntryCore
+import com.tim95bell.seecents.domain.model.LedgerEntryId
 import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
@@ -29,7 +29,7 @@ class LedgerService(
 
     sealed interface EntryCreateError {
         data class LineError(val lineError: LedgerEntryLineCore.CreateError): EntryCreateError
-        data class CoreError(val coreError: LedgerEntryCore.CreateError): EntryCreateError
+        data class CoreError(val coreError: LedgerEntry.CreateError): EntryCreateError
         data class GroupNotFound(val groupId: GroupId): EntryCreateError
         data object CurrencyMismatch: EntryCreateError
         data object EmptyLines : EntryCreateError
@@ -66,7 +66,8 @@ class LedgerService(
                 ).mapLeft(EntryCreateError::LineError)
             }.let { either { it.bindAll() } }.bind()
 
-            val core = LedgerEntryCore.create(
+            val entry = LedgerEntry.create(
+                id = LedgerEntryId.new(),
                 group = group,
                 creatorId = creatorId,
                 type = type,
@@ -77,7 +78,7 @@ class LedgerService(
                 EntryCreateError.CoreError(it)
             }.bind()
 
-            ledgerEntryRepo.save(core)
+            ledgerEntryRepo.save(entry)
         }
     }
 }
