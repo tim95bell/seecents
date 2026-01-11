@@ -14,7 +14,7 @@ data class LedgerEntry private constructor(
     val creatorId: UserId,
     val createdAt: Instant,
     val effectiveAt: Instant,
-    val lines: NonEmptyList<LedgerEntryLineCore>,
+    val lines: NonEmptyList<LedgerEntryLine>,
 ) {
     sealed interface CreateError {
         data object EffectiveDateAfterCreationError : CreateError
@@ -31,7 +31,7 @@ data class LedgerEntry private constructor(
             creatorId: UserId,
             createdAt: Instant,
             effectiveAt: Instant,
-            lines: NonEmptyList<LedgerEntryLineCore>,
+            lines: NonEmptyList<LedgerEntryLine>,
         ): Either<CreateError, LedgerEntry> {
             if (!group.users.contains(creatorId)) {
                 return CreateError.CreatorNotInGroupError.left()

@@ -4,7 +4,7 @@ import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.testutil.AUD
 import com.tim95bell.seecents.testutil.EUR
 import com.tim95bell.seecents.domain.model.LedgerEntry
-import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
+import com.tim95bell.seecents.domain.model.LedgerEntryLine
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.testutil.T0
@@ -174,7 +174,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.LineError(LedgerEntryLineCore.CreateError.NonPositiveAmount))
+            result.assertLeftEq(LedgerService.EntryCreateError.LineError(LedgerEntryLine.CreateError.NonPositiveAmount))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }

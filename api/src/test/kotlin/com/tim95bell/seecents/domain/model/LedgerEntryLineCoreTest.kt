@@ -28,11 +28,11 @@ class LedgerEntryLineCoreTest {
 
     @Test
     fun `line amount can NOT be zero`() {
-        testLine(amount = 0L).assertLeftEq(LedgerEntryLineCore.CreateError.NonPositiveAmount)
+        testLine(amount = 0L).assertLeftEq(LedgerEntryLine.CreateError.NonPositiveAmount)
     }
 
     @Test
     fun `line amount can NOT be negative non zero`() {
-        testLine(amount = -10L).assertLeftEq(LedgerEntryLineCore.CreateError.NonPositiveAmount)
+        testLine(amount = -10L).assertLeftEq(LedgerEntryLine.CreateError.NonPositiveAmount)
     }
 }

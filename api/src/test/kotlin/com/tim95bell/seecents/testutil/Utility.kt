@@ -9,7 +9,8 @@ import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.GroupName
 import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryId
-import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
+import com.tim95bell.seecents.domain.model.LedgerEntryLine
+import com.tim95bell.seecents.domain.model.LedgerEntryLineId
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.PasswordHash
@@ -89,10 +90,12 @@ fun testGroup(
 )
 
 fun testLine(
+    id: LedgerEntryLineId = LedgerEntryLineId.new(),
     from: Int = 1,
     to: Int = 2,
     amount: Long = DEFAULT_MONEY_AMOUNT
-) = LedgerEntryLineCore.create(
+) = LedgerEntryLine.create(
+    id,
     testUserId(from),
     testUserId(to),
     testMoney(amount = amount)
@@ -110,8 +113,9 @@ fun testEntry(
         AUD,
         NonEmptySet.of(testUserId(1), testUserId(2)),
     ),
-    lines: NonEmptyList<LedgerEntryLineCore> = NonEmptyList.of(
-        LedgerEntryLineCore.create(
+    lines: NonEmptyList<LedgerEntryLine> = NonEmptyList.of(
+        LedgerEntryLine.create(
+            LedgerEntryLineId.new(),
             testUserId(1),
             testUserId(2),
             testMoney()
