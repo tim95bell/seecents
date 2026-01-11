@@ -13,7 +13,7 @@ import com.tim95bell.seecents.testutil.testEntry
 import com.tim95bell.seecents.testutil.testLine
 import org.junit.jupiter.api.Test
 
-class LedgerEntryCoreTest {
+class LedgerEntryTest {
     @Test
     fun `can create valid entry`() {
         testEntry().assertRight()

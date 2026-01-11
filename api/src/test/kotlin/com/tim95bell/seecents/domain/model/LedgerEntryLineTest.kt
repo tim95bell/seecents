@@ -7,7 +7,7 @@ import com.tim95bell.seecents.testutil.assertRight
 import com.tim95bell.seecents.testutil.testLine
 import org.junit.jupiter.api.Test
 
-class LedgerEntryLineCoreTest {
+class LedgerEntryLineTest {
     @Test
     fun `can create valid line`() {
         testLine().assertRight()

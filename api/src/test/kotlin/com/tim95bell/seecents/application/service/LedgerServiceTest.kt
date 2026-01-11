@@ -224,7 +224,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntry.CreateError.EffectiveDateAfterCreationError))
+            result.assertLeftEq(LedgerService.EntryCreateError.LedgerEntryError(LedgerEntry.CreateError.EffectiveDateAfterCreationError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -288,7 +288,7 @@ class LedgerServiceTest {
 
             // THEN
             result.assertLeftEq(
-                LedgerService.EntryCreateError.CoreError(
+                LedgerService.EntryCreateError.LedgerEntryError(
                     LedgerEntry.CreateError.PaymentFromIdEqualsToIdError
                 )
             )
@@ -358,7 +358,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntry.CreateError.CreatorNotInGroupError))
+            result.assertLeftEq(LedgerService.EntryCreateError.LedgerEntryError(LedgerEntry.CreateError.CreatorNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -389,7 +389,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntry.CreateError.LineUserNotInGroupError))
+            result.assertLeftEq(LedgerService.EntryCreateError.LedgerEntryError(LedgerEntry.CreateError.LineUserNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }
@@ -420,7 +420,7 @@ class LedgerServiceTest {
             )
 
             // THEN
-            result.assertLeftEq(LedgerService.EntryCreateError.CoreError(LedgerEntry.CreateError.LineUserNotInGroupError))
+            result.assertLeftEq(LedgerService.EntryCreateError.LedgerEntryError(LedgerEntry.CreateError.LineUserNotInGroupError))
             verify(exactly = 0) {
                 ledgerRepo.save(any())
             }

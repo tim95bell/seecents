@@ -30,7 +30,7 @@ class LedgerService(
 
     sealed interface EntryCreateError {
         data class LineError(val lineError: LedgerEntryLine.CreateError): EntryCreateError
-        data class CoreError(val coreError: LedgerEntry.CreateError): EntryCreateError
+        data class LedgerEntryError(val ledgerEntryError: LedgerEntry.CreateError): EntryCreateError
         data class GroupNotFound(val groupId: GroupId): EntryCreateError
         data object CurrencyMismatch: EntryCreateError
         data object EmptyLines : EntryCreateError
@@ -77,7 +77,7 @@ class LedgerService(
                 effectiveAt = effectiveAt,
                 lines = lines,
             ).mapLeft {
-                EntryCreateError.CoreError(it)
+                EntryCreateError.LedgerEntryError(it)
             }.bind()
 
             ledgerEntryRepo.save(entry)

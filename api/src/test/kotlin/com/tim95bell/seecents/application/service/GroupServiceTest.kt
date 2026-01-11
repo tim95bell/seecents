@@ -106,7 +106,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(Group.AddUserError.InvitedUserAlreadyInGroup))
+            ).assertLeftEq(GroupService.AddUserToGroupError.GroupError(Group.AddUserError.InvitedUserAlreadyInGroup))
         }
 
         @Test
@@ -133,7 +133,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(Group.AddUserError.InvitingUserNotInGroup))
+            ).assertLeftEq(GroupService.AddUserToGroupError.GroupError(Group.AddUserError.InvitingUserNotInGroup))
         }
     }
 }

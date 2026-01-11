@@ -30,14 +30,14 @@ class GroupService(
 
     sealed interface AddUserToGroupError {
         data class GroupNotFound(val groupId: GroupId) : AddUserToGroupError
-        data class CoreError(val coreError: Group.AddUserError) : AddUserToGroupError
+        data class GroupError(val groupError: Group.AddUserError) : AddUserToGroupError
     }
 
     fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Either<AddUserToGroupError, Group> {
         val group = groupRepo.findById(groupId) ?: return AddUserToGroupError.GroupNotFound(groupId).left()
 
         return group.addUser(invitingUser, invitedUser)
-            .mapLeft(AddUserToGroupError::CoreError)
+            .mapLeft(AddUserToGroupError::GroupError)
             .map {
                 groupRepo.save(group)
             }

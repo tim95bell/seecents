@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
-class GroupCoreTest {
+class GroupTest {
     @Test
     fun `can add user to group when they are not a member and are invited by a member`() {
         val invitingUser = U1
