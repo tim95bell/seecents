@@ -4,11 +4,13 @@ import arrow.core.NonEmptyList
 import arrow.core.flatMap
 import com.tim95bell.seecents.testutil.T0
 import com.tim95bell.seecents.testutil.T1
+import com.tim95bell.seecents.testutil.U1
+import com.tim95bell.seecents.testutil.U2
+import com.tim95bell.seecents.testutil.U3
 import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRight
 import com.tim95bell.seecents.testutil.testEntry
 import com.tim95bell.seecents.testutil.testLine
-import com.tim95bell.seecents.testutil.testUserId
 import org.junit.jupiter.api.Test
 
 class LedgerEntryCoreTest {
@@ -52,46 +54,46 @@ class LedgerEntryCoreTest {
 
     @Test
     fun `expense entries can contain lines where fromId equals toId`() {
-        testLine(from = 1, to = 1).flatMap { line ->
+        testLine(from = U1, to = U1).flatMap { line ->
             testEntry(type = LedgerEntryType.Expense, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
     @Test
     fun `payment entries can NOT contain lines where fromId equals toId`() {
-        testLine(from = 1, to = 1).flatMap { line ->
+        testLine(from = U1, to = U1).flatMap { line ->
             testEntry(type = LedgerEntryType.Payment, lines = NonEmptyList.of(line))
         }.assertLeftEq(LedgerEntry.CreateError.PaymentFromIdEqualsToIdError)
     }
 
     @Test
     fun `expense entries can contain lines where fromId NOT equals toId`() {
-        testLine(from = 1, to = 2).flatMap { line ->
+        testLine(from = U1, to = U2).flatMap { line ->
             testEntry(type = LedgerEntryType.Expense, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
     @Test
     fun `payment entries can contain lines where fromId NOT equals toId`() {
-        testLine(from = 1, to = 2).flatMap { line ->
+        testLine(from = U1, to = U2).flatMap { line ->
             testEntry(type = LedgerEntryType.Payment, lines = NonEmptyList.of(line))
         }.assertRight()
     }
 
     @Test
     fun `can NOT have creatorId that is not in group`() {
-        testEntry(creatorId = testUserId(3)).assertLeftEq(LedgerEntry.CreateError.CreatorNotInGroupError)
+        testEntry(creatorId = U3).assertLeftEq(LedgerEntry.CreateError.CreatorNotInGroupError)
     }
 
     @Test
     fun `can NOT have line fromId that is not in group`() {
-        testEntry(lines = NonEmptyList.of(testLine(from = 3).assertRight().value))
+        testEntry(lines = NonEmptyList.of(testLine(from = U3).assertRight().value))
             .assertLeftEq(LedgerEntry.CreateError.LineUserNotInGroupError)
     }
 
     @Test
     fun `can NOT have line toId that is not in group`() {
-        testEntry(lines = NonEmptyList.of(testLine(to = 3).assertRight().value))
+        testEntry(lines = NonEmptyList.of(testLine(to = U3).assertRight().value))
             .assertLeftEq(LedgerEntry.CreateError.LineUserNotInGroupError)
     }
 }

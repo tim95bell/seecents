@@ -15,9 +15,9 @@ import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
 import com.tim95bell.seecents.domain.model.PasswordHash
 import com.tim95bell.seecents.domain.model.User
-import com.tim95bell.seecents.domain.model.UserCore
 import com.tim95bell.seecents.domain.model.UserId
 import com.tim95bell.seecents.domain.model.UserName
+import com.tim95bell.seecents.util.unwrap
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
@@ -51,36 +51,30 @@ val AUD: Currency = Currency.getInstance("AUD")
 val EUR: Currency = Currency.getInstance("EUR")
 val T0: Instant = Instant.parse("2025-01-01T00:00:00Z")
 val T1: Instant = T0.plus(Duration.ofDays(1))
+val U1 = UserId.new()
+val U2 = UserId.new()
+val U3 = UserId.new()
 
 fun testMoney(currency: Currency = AUD, amount: Long = DEFAULT_MONEY_AMOUNT) = MoneyAmount(currency, amount)
 
-fun testUserId(id: Int = 1) = UserId("u$id")
-
-fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwordHash: String = "password"): UserCore {
-    return UserCore(
-        UserName.fromCanonical(name)
-            .assertRight().value,
-        Email.fromCanonical(email).assertRight().value,
-        PasswordHash(passwordHash),
-    )
-}
-
 fun testUser(
-    id: Int = 1,
+    id: UserId = U1,
     name: String = "test",
     email: String = "test@gmail.com",
     passwordHash: String = "password"
 ): User {
     return User(
-        testUserId(id),
-        testUserCore(name = name, email = email, passwordHash = passwordHash)
+        id,
+        UserName.fromCanonical(name).unwrap(),
+        Email.fromCanonical(email).unwrap(),
+        PasswordHash(passwordHash),
     )
 }
 
 fun testGroup(
     id: GroupId = GroupId.new(),
     currency: Currency = AUD,
-    users: NonEmptySet<UserId> = NonEmptySet.of(testUserId(1), testUserId(2))
+    users: NonEmptySet<UserId> = NonEmptySet.of(U1, U2),
 ) = Group(
     id,
     currency = currency,
@@ -91,13 +85,13 @@ fun testGroup(
 
 fun testLine(
     id: LedgerEntryLineId = LedgerEntryLineId.new(),
-    from: Int = 1,
-    to: Int = 2,
+    from: UserId = U1,
+    to: UserId = U2,
     amount: Long = DEFAULT_MONEY_AMOUNT
 ) = LedgerEntryLine.create(
     id,
-    testUserId(from),
-    testUserId(to),
+    from,
+    to,
     testMoney(amount = amount)
 )
 
@@ -111,17 +105,17 @@ fun testEntry(
         GroupName.fromCanonical("test")
             .assertRight().value,
         AUD,
-        NonEmptySet.of(testUserId(1), testUserId(2)),
+        NonEmptySet.of(U1, U2),
     ),
     lines: NonEmptyList<LedgerEntryLine> = NonEmptyList.of(
         LedgerEntryLine.create(
             LedgerEntryLineId.new(),
-            testUserId(1),
-            testUserId(2),
+            U1,
+            U2,
             testMoney()
         ).assertRight().value
     ),
-    creatorId: UserId = testUserId(1),
+    creatorId: UserId = U1,
 ): Either<LedgerEntry.CreateError, LedgerEntry> {
     return LedgerEntry.create(
         id,

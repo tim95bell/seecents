@@ -1,5 +1,7 @@
 package com.tim95bell.seecents.domain.model
 
+import com.tim95bell.seecents.testutil.U1
+import com.tim95bell.seecents.testutil.U2
 import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRight
 import com.tim95bell.seecents.testutil.testLine
@@ -13,12 +15,12 @@ class LedgerEntryLineCoreTest {
 
     @Test
     fun `line fromUserId can equal toUserId`() {
-        testLine(from = 1, to = 1).assertRight()
+        testLine(from = U1, to = U1).assertRight()
     }
 
     @Test
     fun `line fromUserId can NOT equal toUserId`() {
-        testLine(from = 1, to = 2).assertRight()
+        testLine(from = U1, to = U2).assertRight()
     }
 
     @Test

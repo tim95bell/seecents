@@ -1,14 +1,11 @@
 package com.tim95bell.seecents.application.service
 
 import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.left
 import arrow.core.raise.either
-import arrow.core.right
 import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.PasswordHash
 import com.tim95bell.seecents.domain.model.User
-import com.tim95bell.seecents.domain.model.UserCore
+import com.tim95bell.seecents.domain.model.UserId
 import com.tim95bell.seecents.domain.model.UserName
 import com.tim95bell.seecents.domain.repository.UserRepository
 import org.springframework.stereotype.Service
@@ -39,7 +36,7 @@ class UserService(
         if (userRepo.findByEmail(email) != null) {
             raise(CreateAccountError.EmailAlreadyExists)
         } else {
-            userRepo.save(UserCore(name, email, passwordHash))
+            userRepo.save(User(UserId.new(), name, email, passwordHash))
         }
     }
 
@@ -54,7 +51,7 @@ class UserService(
 
         val user = userRepo.findByEmail(email) ?: raise(LoginError.Invalid)
 
-        if (user.core.passwordHash != passwordHash) {
+        if (user.passwordHash != passwordHash) {
             raise(LoginError.Invalid)
         }
 

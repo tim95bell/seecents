@@ -7,8 +7,10 @@ import com.tim95bell.seecents.testutil.assertLeft
 import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRight
 import com.tim95bell.seecents.testutil.testGroup
-import com.tim95bell.seecents.testutil.testUserId
 import com.tim95bell.seecents.domain.repository.GroupRepository
+import com.tim95bell.seecents.testutil.U1
+import com.tim95bell.seecents.testutil.U2
+import com.tim95bell.seecents.testutil.U3
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
@@ -39,7 +41,7 @@ class GroupServiceTest {
         fun `succeeds for valid group`() {
             stubSave()
             service.createGroup(
-                testUserId(),
+                U1,
                 "test",
                 AUD,
             ).assertRight()
@@ -48,7 +50,7 @@ class GroupServiceTest {
         @Test
         fun `fails for group with white space name`() {
             service.createGroup(
-                testUserId(),
+                U1,
                 "  \t\n  ",
                 AUD,
             ).assertLeftEq(GroupService.CreateGroupError.InvalidName)
@@ -57,7 +59,7 @@ class GroupServiceTest {
         @Test
         fun `fails for group with empty name`() {
             service.createGroup(
-                testUserId(),
+                U1,
                 "",
                 AUD,
             ).assertLeftEq(GroupService.CreateGroupError.InvalidName)
@@ -68,8 +70,8 @@ class GroupServiceTest {
     inner class AddUserToGroup {
         @Test
         fun `succeeds with inviting user in group and invited user not in group`() {
-            val invitingUser = testUserId(1)
-            val invitedUser = testUserId(2)
+            val invitingUser = U1
+            val invitedUser = U2
             val group = testGroup(users = NonEmptySet.of(invitingUser))
             stubSave()
             stubGetById(group)
@@ -82,8 +84,8 @@ class GroupServiceTest {
 
         @Test
         fun `fails when group not found`() {
-            val invitingUser = testUserId(1)
-            val invitedUser = testUserId(2)
+            val invitingUser = U1
+            val invitedUser = U2
             val group = testGroup(users = NonEmptySet.of(invitingUser))
             stubGetById(group)
             every { groupRepo.findById(group.id) } returns null
@@ -96,8 +98,8 @@ class GroupServiceTest {
 
         @Test
         fun `fails with inviting user in group and invited user in group`() {
-            val invitingUser = testUserId(1)
-            val invitedUser = testUserId(2)
+            val invitingUser = U1
+            val invitedUser = U2
             val group = testGroup(users = NonEmptySet.of(invitingUser, invitedUser))
             stubGetById(group)
             service.addUserToGroup(
@@ -109,8 +111,8 @@ class GroupServiceTest {
 
         @Test
         fun `fails with inviting user not in group and invited user in group`() {
-            val invitingUser = testUserId(1)
-            val invitedUser = testUserId(2)
+            val invitingUser = U1
+            val invitedUser = U2
             val group = testGroup(users = NonEmptySet.of(invitedUser))
             stubGetById(group)
             service.addUserToGroup(
@@ -122,9 +124,9 @@ class GroupServiceTest {
 
         @Test
         fun `fails with inviting user not in group and invited user not in group`() {
-            val invitingUser = testUserId(1)
-            val invitedUser = testUserId(2)
-            val group = testGroup(users = NonEmptySet.of(testUserId(3)))
+            val invitingUser = U1
+            val invitedUser = U2
+            val group = testGroup(users = NonEmptySet.of(U3))
             stubSave()
             stubGetById(group)
             service.addUserToGroup(
