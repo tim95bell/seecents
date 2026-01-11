@@ -7,6 +7,10 @@ import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRightEq
 import com.tim95bell.seecents.testutil.testUser
 import com.tim95bell.seecents.domain.repository.UserRepository
+import com.tim95bell.seecents.testutil.TEST_EMAIL
+import com.tim95bell.seecents.testutil.TEST_PASSWORD_HASH
+import com.tim95bell.seecents.testutil.TEST_USER_NAME
+import com.tim95bell.seecents.testutil.assertRight
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -24,7 +28,11 @@ class UserServiceTest {
         userService = UserService(userRepo)
     }
 
-    private fun stubFindByEmailNotFound(user: User) {
+    private fun stubFindByEmail(email: Email) {
+        every { userRepo.findByEmail(email) } returns mockk<User>()
+    }
+
+    private fun stubFindByEmail(user: User) {
         every { userRepo.findByEmail(user.email) } returns user
     }
 
@@ -36,17 +44,16 @@ class UserServiceTest {
     inner class CreateAccount {
         @Test
         fun `succeeds for valid input`() {
-            val user = testUser()
-            stubFindByEmailNotFound(user.email)
-            every { userRepo.save(any()) } returns user
+            val name = TEST_USER_NAME[0]
+            val email = TEST_EMAIL[0]
+            val passwordHash = TEST_PASSWORD_HASH[0]
+            stubFindByEmailNotFound(email)
+            every { userRepo.save(any()) } returns mockk<User>()
             userService.createAccount(
-                user.name.value,
-                user.email.value,
-                user.passwordHash,
-            ).assertRightEq(user)
-            verify(exactly = 1) {
-                userRepo.findByEmail(user.email)
-            }
+                name.value,
+                email.value,
+                passwordHash,
+            ).assertRight()
             verify(exactly = 1) {
                 userRepo.save(any())
             }
@@ -54,13 +61,18 @@ class UserServiceTest {
 
         @Test
         fun `fails for valid input where email already exists`() {
-            val user = testUser()
-            stubFindByEmailNotFound(user)
+            val name = TEST_USER_NAME[0]
+            val email = TEST_EMAIL[0]
+            val passwordHash = TEST_PASSWORD_HASH[0]
+            stubFindByEmail(email)
             userService.createAccount(
-                user.name.value,
-                user.email.value,
-                user.passwordHash,
+                name.value,
+                email.value,
+                passwordHash,
             ).assertLeftEq(UserService.CreateAccountError.EmailAlreadyExists)
+            verify(exactly = 0) {
+                userRepo.save(any())
+            }
         }
     }
 
@@ -69,7 +81,7 @@ class UserServiceTest {
         @Test
         fun `succeeds for valid input`() {
             val user = testUser()
-            stubFindByEmailNotFound(user)
+            stubFindByEmail(user)
             userService.login(user.email.value, user.passwordHash)
                 .assertRightEq(user)
             verify(exactly = 1) { userRepo.findByEmail(user.email) }
@@ -94,7 +106,7 @@ class UserServiceTest {
         @Test
         fun `fails for user incorrect password`() {
             val user = testUser()
-            stubFindByEmailNotFound(user)
+            stubFindByEmail(user)
             userService.login(user.email.value, PasswordHash("differentPassword"))
                 .assertLeftEq(UserService.LoginError.Invalid)
             verify(exactly = 1) { userRepo.findByEmail(user.email) }

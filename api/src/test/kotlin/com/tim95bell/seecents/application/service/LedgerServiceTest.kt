@@ -1,13 +1,10 @@
 package com.tim95bell.seecents.application.service
 
 import com.tim95bell.seecents.domain.model.Group
-import com.tim95bell.seecents.testutil.AUD
-import com.tim95bell.seecents.testutil.EUR
 import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryLine
 import com.tim95bell.seecents.domain.model.LedgerEntryType
 import com.tim95bell.seecents.domain.model.MoneyAmount
-import com.tim95bell.seecents.testutil.T0
 import com.tim95bell.seecents.testutil.assertLeft
 import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRight
@@ -15,9 +12,9 @@ import com.tim95bell.seecents.testutil.testGroup
 import com.tim95bell.seecents.testutil.testMoney
 import com.tim95bell.seecents.domain.repository.GroupRepository
 import com.tim95bell.seecents.domain.repository.LedgerEntryRepository
-import com.tim95bell.seecents.testutil.U1
-import com.tim95bell.seecents.testutil.U2
-import com.tim95bell.seecents.testutil.U3
+import com.tim95bell.seecents.testutil.TEST_CURRENCY
+import com.tim95bell.seecents.testutil.TEST_INSTANT
+import com.tim95bell.seecents.testutil.TEST_USER_ID
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -72,9 +69,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -97,9 +94,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -121,9 +118,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -137,17 +134,17 @@ class LedgerServiceTest {
         @Test
         fun `fails when line currency differs from group currency`() {
             // GIVEN
-            val group = testGroup(currency = AUD)
-            val lines = singleLineFor(group, amount = testMoney(currency = EUR))
+            val group = testGroup(currency = TEST_CURRENCY[0])
+            val lines = singleLineFor(group, amount = testMoney(currency = TEST_CURRENCY[1]))
             stubGroupFound(group)
             val type = LedgerEntryType.Expense
 
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -169,9 +166,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -193,9 +190,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -217,7 +214,7 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
                 effectiveAt = Instant.now().plus(Duration.ofDays(1)),
                 lines = lines,
@@ -249,9 +246,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -280,9 +277,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -311,9 +308,9 @@ class LedgerServiceTest {
 
             val result = service.createEntry(
                 type = LedgerEntryType.Expense,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -329,14 +326,15 @@ class LedgerServiceTest {
             val result = service.createEntry(
                 type = LedgerEntryType.Expense,
                 groupId = group.id,
-                creatorId = U1,
-                effectiveAt = T0,
+                creatorId = TEST_USER_ID[0],
+                effectiveAt = TEST_INSTANT[0],
                 lines = emptyList()
             )
 
             result.assertLeftEq(
                 LedgerService.EntryCreateError.GroupNotFound(group.id)
             )
+            verify(exactly = 0) { ledgerRepo.save(any()) }
         }
 
         @Test
@@ -351,9 +349,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U3,
+                creatorId = TEST_USER_ID[2],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -370,8 +368,8 @@ class LedgerServiceTest {
             val group = testGroup()
             val lines = listOf(
                 LedgerService.CreateEntryLine(
-                    fromId = U3,
-                    toId = U2,
+                    fromId = TEST_USER_ID[2],
+                    toId = TEST_USER_ID[1],
                     amount = testMoney(),
                 )
             )
@@ -382,9 +380,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
@@ -401,8 +399,8 @@ class LedgerServiceTest {
             val group = testGroup()
             val lines = listOf(
                 LedgerService.CreateEntryLine(
-                    fromId = U1,
-                    toId = U3,
+                    fromId = TEST_USER_ID[0],
+                    toId = TEST_USER_ID[2],
                     amount = testMoney(),
                 )
             )
@@ -413,9 +411,9 @@ class LedgerServiceTest {
             // WHEN
             val result = service.createEntry(
                 type = type,
-                creatorId = U1,
+                creatorId = TEST_USER_ID[0],
                 groupId = group.id,
-                effectiveAt = T0,
+                effectiveAt = TEST_INSTANT[0],
                 lines = lines,
             )
 
