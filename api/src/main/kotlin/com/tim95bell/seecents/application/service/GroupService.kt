@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.NonEmptySet
 import arrow.core.left
 import com.tim95bell.seecents.domain.model.Group
-import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.GroupName
 import com.tim95bell.seecents.domain.model.UserId
@@ -24,23 +23,23 @@ class GroupService(
         return GroupName.fromInput(name)
             .mapLeft { CreateGroupError.InvalidName }
             .map { name ->
-                GroupCore(name, currency, NonEmptySet.of(creator))
+                Group(GroupId.new(), name, currency, NonEmptySet.of(creator))
             }
             .map(groupRepo::save)
     }
 
     sealed interface AddUserToGroupError {
         data class GroupNotFound(val groupId: GroupId) : AddUserToGroupError
-        data class CoreError(val coreError: GroupCore.AddUserError) : AddUserToGroupError
+        data class CoreError(val coreError: Group.AddUserError) : AddUserToGroupError
     }
 
     fun addUserToGroup(invitingUser: UserId, invitedUser: UserId, groupId: GroupId): Either<AddUserToGroupError, Group> {
         val group = groupRepo.findById(groupId) ?: return AddUserToGroupError.GroupNotFound(groupId).left()
 
-        return group.core.addUser(invitingUser, invitedUser)
+        return group.addUser(invitingUser, invitedUser)
             .mapLeft(AddUserToGroupError::CoreError)
             .map {
-                groupRepo.update(group.copy(core = it))
+                groupRepo.save(group)
             }
     }
 }

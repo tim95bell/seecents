@@ -31,13 +31,13 @@ data class LedgerEntryCore private constructor(
             effectiveAt: Instant,
             lines: NonEmptyList<LedgerEntryLineCore>,
         ): Either<CreateError, LedgerEntryCore> {
-            if (!group.core.users.contains(creatorId)) {
+            if (!group.users.contains(creatorId)) {
                 return CreateError.CreatorNotInGroupError.left()
             }
 
             if (lines.any {
-                !group.core.users.contains(it.fromId) ||
-                        !group.core.users.contains(it.toId)
+                !group.users.contains(it.fromId) ||
+                        !group.users.contains(it.toId)
             }) {
                 return CreateError.LineUserNotInGroupError.left()
             }

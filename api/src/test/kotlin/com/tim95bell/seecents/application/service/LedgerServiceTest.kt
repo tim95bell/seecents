@@ -1,8 +1,8 @@
 package com.tim95bell.seecents.application.service
 
+import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.testutil.AUD
 import com.tim95bell.seecents.testutil.EUR
-import com.tim95bell.seecents.domain.model.Group
 import com.tim95bell.seecents.domain.model.LedgerEntry
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
 import com.tim95bell.seecents.domain.model.LedgerEntryLineCore
@@ -32,7 +32,7 @@ class LedgerServiceTest {
     private lateinit var service: LedgerService
 
     private fun singleLineFor(group: Group, amount: MoneyAmount = testMoney()) =
-        group.core.users.toList().let { users ->
+        group.users.toList().let { users ->
             listOf(
                 LedgerService.CreateEntryLine(
                     fromId = users[0],
@@ -233,7 +233,7 @@ class LedgerServiceTest {
         fun `succeeds for expense entry with line where fromId equals toId`() {
             // GIVEN
             val group = testGroup()
-            val user = group.core.users.first()
+            val user = group.users.first()
             val lines = listOf(
                 LedgerService.CreateEntryLine(
                     fromId = user,
@@ -265,7 +265,7 @@ class LedgerServiceTest {
         fun `fails for payment entry with line where fromId equals toId`() {
             // GIVEN
             val group = testGroup()
-            val user = group.core.users.first()
+            val user = group.users.first()
             val lines = listOf(
                 LedgerService.CreateEntryLine(
                     fromId = user,
@@ -299,7 +299,7 @@ class LedgerServiceTest {
         @Test
         fun `fails and does not save when any line is invalid`() {
             val group = testGroup()
-            val users = group.core.users.toList()
+            val users = group.users.toList()
 
             val lines = listOf(
                 LedgerService.CreateEntryLine(users[0], users[1], testMoney()),
@@ -323,17 +323,18 @@ class LedgerServiceTest {
         @Test
         fun `does not validate lines when group does not exist`() {
             stubGroupFound(null)
+            val group = testGroup()
 
             val result = service.createEntry(
                 type = LedgerEntryType.Expense,
-                groupId = testGroup().id,
+                groupId = group.id,
                 creatorId = testUserId(),
                 effectiveAt = T0,
                 lines = emptyList()
             )
 
             result.assertLeftEq(
-                LedgerService.EntryCreateError.GroupNotFound(testGroup().id)
+                LedgerService.EntryCreateError.GroupNotFound(group.id)
             )
         }
 

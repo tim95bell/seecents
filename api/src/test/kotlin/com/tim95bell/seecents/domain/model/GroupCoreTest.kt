@@ -1,7 +1,6 @@
 package com.tim95bell.seecents.domain.model
 
 import arrow.core.NonEmptySet
-import arrow.core.flatMap
 import com.tim95bell.seecents.testutil.AUD
 import com.tim95bell.seecents.testutil.assertLeft
 import com.tim95bell.seecents.testutil.assertLeftEq
@@ -18,7 +17,7 @@ class GroupCoreTest {
         val invitedUser = testUserId(2)
         val users = NonEmptySet.of(invitingUser)
         val name = GroupName.fromCanonical("test").assertRight().value
-        val group = GroupCore(name, AUD, users)
+        val group = Group(GroupId.new(), name, AUD, users)
         val result = group.addUser(invitingUser, invitedUser).assertRight().value
         assertEquals(group.users.size + 1, result.users.size)
         assertTrue(result.users.contains(invitedUser))
@@ -31,9 +30,9 @@ class GroupCoreTest {
         val invitedUser = testUserId(2)
         val users = NonEmptySet.of(invitingUser, invitedUser)
         val name = GroupName.fromCanonical("test").assertRight().value
-        GroupCore(name, AUD, users)
+        Group(GroupId.new(), name, AUD, users)
             .addUser(invitingUser, invitedUser)
-            .assertLeftEq(GroupCore.AddUserError.InvitedUserAlreadyInGroup)
+            .assertLeftEq(Group.AddUserError.InvitedUserAlreadyInGroup)
     }
 
     @Test
@@ -42,9 +41,9 @@ class GroupCoreTest {
         val invitedUser = testUserId(2)
         val users = NonEmptySet.of(testUserId(3))
         val name = GroupName.fromCanonical("test").assertRight().value
-        GroupCore(name, AUD, users)
+        Group(GroupId.new(), name, AUD, users)
             .addUser(invitingUser, invitedUser)
-            .assertLeftEq(GroupCore.AddUserError.InvitingUserNotInGroup)
+            .assertLeftEq(Group.AddUserError.InvitingUserNotInGroup)
     }
 
     @Test
@@ -53,7 +52,7 @@ class GroupCoreTest {
         val invitedUser = testUserId(2)
         val users = NonEmptySet.of(invitedUser)
         val name = GroupName.fromCanonical("test").assertRight().value
-        GroupCore(name, AUD, users)
+        Group(GroupId.new(), name, AUD, users)
             .addUser(invitingUser, invitedUser)
             .assertLeft()
     }

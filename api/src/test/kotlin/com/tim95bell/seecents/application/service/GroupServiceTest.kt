@@ -3,7 +3,6 @@ package com.tim95bell.seecents.application.service
 import arrow.core.NonEmptySet
 import com.tim95bell.seecents.testutil.AUD
 import com.tim95bell.seecents.domain.model.Group
-import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.testutil.assertLeft
 import com.tim95bell.seecents.testutil.assertLeftEq
 import com.tim95bell.seecents.testutil.assertRight
@@ -28,10 +27,6 @@ class GroupServiceTest {
 
     private fun stubSave() {
         every { groupRepo.save(any()) } returns mockk<Group>()
-    }
-
-    private fun stubUpdate() {
-        every { groupRepo.update(any()) } returns mockk<Group>()
     }
 
     private fun stubGetById(group: Group) {
@@ -76,7 +71,7 @@ class GroupServiceTest {
             val invitingUser = testUserId(1)
             val invitedUser = testUserId(2)
             val group = testGroup(users = NonEmptySet.of(invitingUser))
-            stubUpdate()
+            stubSave()
             stubGetById(group)
             service.addUserToGroup(
                 invitingUser,
@@ -109,7 +104,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitedUserAlreadyInGroup))
+            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(Group.AddUserError.InvitedUserAlreadyInGroup))
         }
 
         @Test
@@ -136,7 +131,7 @@ class GroupServiceTest {
                 invitingUser,
                 invitedUser,
                 group.id,
-            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(GroupCore.AddUserError.InvitingUserNotInGroup))
+            ).assertLeftEq(GroupService.AddUserToGroupError.CoreError(Group.AddUserError.InvitingUserNotInGroup))
         }
     }
 }

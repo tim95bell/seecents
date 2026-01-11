@@ -5,7 +5,6 @@ import arrow.core.NonEmptyList
 import arrow.core.NonEmptySet
 import com.tim95bell.seecents.domain.model.Email
 import com.tim95bell.seecents.domain.model.Group
-import com.tim95bell.seecents.domain.model.GroupCore
 import com.tim95bell.seecents.domain.model.GroupId
 import com.tim95bell.seecents.domain.model.GroupName
 import com.tim95bell.seecents.domain.model.LedgerEntryCore
@@ -55,8 +54,6 @@ fun testMoney(currency: Currency = AUD, amount: Long = DEFAULT_MONEY_AMOUNT) = M
 
 fun testUserId(id: Int = 1) = UserId("u$id")
 
-fun testGroupId(id: Int = 1) = GroupId("g$id")
-
 fun testUserCore(name: String = "test", email: String = "test@gmail.com", passwordHash: String = "password"): UserCore {
     return UserCore(
         UserName.fromCanonical(name)
@@ -79,16 +76,15 @@ fun testUser(
 }
 
 fun testGroup(
-    id: Int = 1,
+    id: GroupId = GroupId.new(),
     currency: Currency = AUD,
     users: NonEmptySet<UserId> = NonEmptySet.of(testUserId(1), testUserId(2))
 ) = Group(
-    testGroupId(id), GroupCore(
-        currency = currency,
-        name = GroupName.fromCanonical("test")
-            .assertRight().value,
-        users = users,
-    )
+    id,
+    currency = currency,
+    name = GroupName.fromCanonical("test")
+        .assertRight().value,
+    users = users,
 )
 
 fun testLine(
@@ -106,12 +102,11 @@ fun testEntry(
     createdAt: Instant = T0,
     effectiveAt: Instant = T0,
     group: Group = Group(
-        testGroupId(), GroupCore(
-            GroupName.fromCanonical("test")
-                .assertRight().value,
-            AUD,
-            NonEmptySet.of(testUserId(1), testUserId(2)),
-        )
+        GroupId.new(),
+        GroupName.fromCanonical("test")
+            .assertRight().value,
+        AUD,
+        NonEmptySet.of(testUserId(1), testUserId(2)),
     ),
     lines: NonEmptyList<LedgerEntryLineCore> = NonEmptyList.of(
         LedgerEntryLineCore.create(

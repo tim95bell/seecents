@@ -48,7 +48,7 @@ class LedgerService(
             ?: return EntryCreateError.GroupNotFound(groupId).left()
 
         if (lines.any {
-            it.amount.currency != group.core.currency
+            it.amount.currency != group.currency
         }) {
             return EntryCreateError.CurrencyMismatch.left()
         }
